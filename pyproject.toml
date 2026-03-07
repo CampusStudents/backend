@@ -5,6 +5,8 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
+    "alembic>=1.18.4",
+    "asyncpg>=0.31.0",
     "fastapi>=0.135.1",
     "pre-commit>=4.5.1",
     "pydantic-settings>=2.13.1",
@@ -37,7 +39,10 @@ select = [
 ignore = [
     "E501",     # line too long — уже контролируем line-length
     "COM812",   # trailing comma (многие оставляют)
-    "ISC001",   # конфликтует с formatter иногда
+    "ISC001", # конфликтует с formatter иногда
+    "RUF067",
+    "B008",
+    "PLW3201"
 ]
 
 [tool.ruff.format]
@@ -49,3 +54,5 @@ line-ending = "auto"
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
 
+[mypy]
+ignore_missing_imports = true
