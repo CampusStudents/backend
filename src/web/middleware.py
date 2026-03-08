@@ -21,7 +21,7 @@ async def request_handler(request: Request, call_next):
     """Middleware used by FastAPI to process each request"""
 
     # Skip logging for healthcheck endpoint
-    is_healthcheck = request.url.path in ["/api/status", "/status"]
+    is_healthcheck = request.url.path in ["/api/health", "/health"]
 
     start_time = get_time(seconds_precision=False)
     request_id = get_uuid()
