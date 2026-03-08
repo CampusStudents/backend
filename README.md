@@ -67,8 +67,8 @@ docker compose up -d --build
 docker compose exec backend alembic upgrade head
 
 # 5. Открыть документацию API
-http://localhost:8000/docs
-# или redoc: http://localhost:8000/redoc
+http://localhost:8000/api/docs
+# или redoc: http://localhost:8000/api/redoc
 ```
 
 Остановка:
