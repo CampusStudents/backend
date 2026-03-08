@@ -1,0 +1,32 @@
+from fastapi import FastAPI
+
+from src.core.config import configure_logging
+from src.web.api import api_router
+from src.web.lifespan import lifespan_setup
+from src.web.middleware import request_handler
+
+
+def get_app() -> FastAPI:
+    """
+    Get FastAPI application.
+
+    This is the main constructor of an application.
+
+    :return: application.
+    """
+    configure_logging()
+    app = FastAPI(
+        title="campus",
+        lifespan=lifespan_setup,
+        docs_url="/api/docs",
+        redoc_url="/api/redoc",
+        openapi_url="/api/openapi.json",
+    )
+
+    # Add exception handler middleware
+    app.middleware("http")(request_handler)
+
+    # Main router for the API.
+    app.include_router(router=api_router, prefix="/api")
+
+    return app
