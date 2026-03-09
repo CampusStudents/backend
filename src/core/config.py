@@ -1,7 +1,8 @@
 import logging
 from typing import Literal
-from pydantic import BaseModel, PostgresDsn
+from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from sqlalchemy.engine import URL
 
 LOG_DEFAULT_FORMAT = (
     "[%(asctime)s.%(msecs)03d] %(module)10s:%(lineno)-3d %(levelname)-7s - %(message)s"
@@ -33,6 +34,7 @@ class ApiPrefix(BaseModel):
 
 
 class DatabaseConfig(BaseModel):
+    drivername: str = "postgresql+asyncpg"
     user: str
     password: str
     name: str
@@ -51,8 +53,15 @@ class DatabaseConfig(BaseModel):
     }
 
     @property
-    def url(self):
-        return f"postgresql+asyncpg://{self.user}:{self.password}@{self.host}:{self.port}/{self.name}"
+    def url(self) -> URL:
+        return URL.create(
+            drivername=self.drivername,
+            username=self.user,
+            password=self.password,
+            host=self.host,
+            port=self.port,
+            database=self.name,
+        )
 
 
 class Settings(BaseSettings):

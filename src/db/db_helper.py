@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     create_async_engine,
 )
+from sqlalchemy.engine import URL
 
 from src.core.config import settings
 
@@ -11,7 +12,7 @@ from src.core.config import settings
 class DatabaseHelper:
     def __init__(
         self,
-        url: str,
+            url: str | URL,
         echo: bool = False,
         echo_pool: bool = False,
         max_overflow: int = 10,
@@ -43,7 +44,7 @@ class DatabaseHelper:
 
 
 db_helper = DatabaseHelper(
-    url=str(settings.db.url),
+    url=settings.db.url,
     echo=settings.db.echo,
     echo_pool=settings.db.echo_pool,
     max_overflow=settings.db.max_overflow,

@@ -5,14 +5,6 @@ https://github.com/mahenzon/ri-sdk-python-wrapper/blob/master/ri_sdk_codegen/uti
 
 
 def camel_case_to_snake_case(input_str: str) -> str:
-    """
-    >>> camel_case_to_snake_case("SomeSDK")
-    'some_sdk'
-    >>> camel_case_to_snake_case("RServoDrive")
-    'r_servo_drive'
-    >>> camel_case_to_snake_case("SDKDemo")
-    'sdk_demo'
-    """
     chars = []
     for c_idx, char in enumerate(input_str):
         if c_idx and char.isupper():
