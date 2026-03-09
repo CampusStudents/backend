@@ -3,4 +3,4 @@ set -e
 
 ./scripts/run_migrations.sh
 
-exec python -m src.main
+exec uv run -m src.main
