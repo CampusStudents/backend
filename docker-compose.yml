@@ -9,7 +9,7 @@ services:
       pg:
         condition: service_healthy
     healthcheck:
-      test: [ "CMD-SHELL", "python -c \"import sys, urllib.request; r = urllib.request.urlopen('http://localhost:8000/api/health'); sys.exit(0 if r.getcode() == 200 else 1)\"" ]
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/api/health" ]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -24,7 +24,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - pg_data:/var/lib/postgresql/data
+      - pg_data:/var/lib/postgresql/18/docker
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U ${PG_USER} -d ${PG_NAME}" ]
       interval: 5s
