@@ -7,7 +7,7 @@ from src.db.models import db_helper
 
 
 @asynccontextmanager
-async def lifespan_setup(app: FastAPI) -> AsyncGenerator[None]:  # pragma: no cover
+async def lifespan_setup(app: FastAPI) -> AsyncGenerator[None, None]:  # pragma: no cover
     """
     Actions to run on application startup.
 

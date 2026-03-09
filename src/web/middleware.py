@@ -1,5 +1,7 @@
 """Exception handler middleware for FastAPI application."""
 import logging
+from uuid import uuid4
+
 from fastapi import Request, Response, HTTPException
 from fastapi.responses import JSONResponse
 
@@ -34,7 +36,7 @@ async def request_handler(request: Request, call_next):
     is_healthcheck = request.url.path in MONITORING_ROUTE_PATHS
 
     start_time = get_time(seconds_precision=False)
-    request_id = get_uuid()
+    request_id = str(uuid4())
 
     if not is_healthcheck:
         logger.debug(

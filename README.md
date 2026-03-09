@@ -26,22 +26,16 @@ docker compose up -d --build
 
 ## Переменные окружения (.env.example)
 
-`PG_*` (для контейнера PostgreSQL):
-
-- `PG_NAME`
-- `PG_USER`
-- `PG_PASSWORD`
-
-`APP__RUN__*` (запуск приложения):
-
-- `APP__RUN__HOST` - host для uvicorn/FastAPI
-- `APP__RUN__PORT` - порт приложения
-
-`APP__DB__*` (подключение SQLAlchemy):
-
-- `APP__DB__DRIVERNAME` - драйвер БД
-- `APP__DB__HOST` - хост
-- `APP__DB__PORT` - порт
-- `APP__DB__NAME` - имя
-- `APP__DB__USER` - пользователь
-- `APP__DB__PASSWORD` - пароль
+| Переменная            | Описание                                  |
+|-----------------------|-------------------------------------------|
+| `PG_NAME`             | Имя базы данных PostgreSQL контейнера     |
+| `PG_USER`             | Пользователь PostgreSQL контейнера        |
+| `PG_PASSWORD`         | Пароль пользователя PostgreSQL контейнера |
+| `APP__RUN__HOST`      | Host для uvicorn/FastAPI                  |
+| `APP__RUN__PORT`      | Порт приложения                           |
+| `APP__DB__DRIVERNAME` | Драйвер БД                                |
+| `APP__DB__HOST`       | Хост БД                                   |
+| `APP__DB__PORT`       | Порт БД                                   |
+| `APP__DB__NAME`       | Имя БД                                    |
+| `APP__DB__USER`       | Пользователь БД                           |
+| `APP__DB__PASSWORD`   | Пароль пользователя БД                    |
