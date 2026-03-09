@@ -11,17 +11,27 @@ from src.core.exceptions.service.base import (
     ConflictError,
     InvalidInputError,
     BadRequestError,
-    ForbiddenError, AuthError,
+    ForbiddenError,
+    AuthError,
 )
 from src.core.utils.helpers import get_time, get_uuid
-
+from src.web.api.monitoring import router as monitoring_router
 logger = logging.getLogger(__name__)
+
+MONITORING_ROUTE_PATHS = {
+    route.path
+    for route in monitoring_router.routes
+    if hasattr(route, "path")
+}
+MONITORING_ROUTE_PATHS.update(
+    f"/api{path}" for path in MONITORING_ROUTE_PATHS
+)
 
 async def request_handler(request: Request, call_next):
     """Middleware used by FastAPI to process each request"""
 
     # Skip logging for healthcheck endpoint
-    is_healthcheck = request.url.path in ["/api/health", "/health"]
+    is_healthcheck = request.url.path in MONITORING_ROUTE_PATHS
 
     start_time = get_time(seconds_precision=False)
     request_id = get_uuid()
