@@ -1,0 +1,59 @@
+[project]
+name = "backend"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "alembic>=1.18.4",
+    "asyncpg>=0.31.0",
+    "fastapi>=0.135.1",
+    "pydantic-settings>=2.13.1",
+    "pydantic[email]>=2.12.5",
+    "sqlalchemy[asyncio]>=2.0.48",
+    "uvicorn[standard]>=0.41.0",
+]
+
+[dependency-groups]
+dev = [
+    "black>=26.3.0",
+    "pre-commit>=4.5.1",
+    "pytest>=9.0.2",
+    "ruff>=0.15.4",
+]
+
+[tool.ruff]
+target-version = "py314"
+line-length = 88
+extend-exclude = ["migrations", ".venv", ".git", "__pycache__"]
+
+[tool.ruff.lint]
+select = [
+    "E", "F", "W", "I", "B", "B9",
+    "C4", "UP", "SIM", "ARG", "COM",
+    "PIE", "PT", "Q", "RUF",
+    # новые/актуальные в 2025–2026
+    "PERF",     # performance
+    "PL",       # Pylint-совместимые
+    "TRY",      # try/except best practices
+]
+ignore = [
+    "E501",     # line too long — уже контролируем line-length
+    "COM812",   # trailing comma (многие оставляют)
+    "ISC001", # конфликтует с formatter иногда
+    "RUF067",
+    "B008",
+    "PLW3201"
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+
+[mypy]
+ignore_missing_imports = true
