@@ -18,7 +18,16 @@
 cp .env.example .env
 ```
 
-2. Запустите сервисы:
+2. Сгенерируйте jwt private и public ключи
+
+```bash
+mkdir src/certs
+cd src/certs
+openssl genrsa -out jwt-private.pem 2048
+openssl rsa -in jwt-private.pem -outform PEM -pubout -out jwt-public.pem
+```
+
+3. Запустите сервисы:
 
 ```bash
 docker compose up -d --build

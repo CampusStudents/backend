@@ -7,5 +7,8 @@ main_app = get_app()
 
 if __name__ == "__main__":
     uvicorn.run(
-        "src.main:main_app", host=settings.run.host, port=settings.run.port, reload=False
+        "src.main:main_app",
+        host=settings.run.host,
+        port=settings.run.port,
+        reload=False,
     )
