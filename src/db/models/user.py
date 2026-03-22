@@ -13,9 +13,9 @@ if TYPE_CHECKING:
 
 
 class UserRole(str, Enum):
-    USER = "USER"
-    ORGANIZER = "ORGANIZER"
-    ADMIN = "ADMIN"
+    USER = "user"
+    ORGANIZER = "organizer"
+    ADMIN = "admin"
 
 
 class User(UUIDPkMixin, TimestampMixin, Base):

@@ -40,7 +40,7 @@ def upgrade() -> None:
         sa.Column("password_hash", sa.String(), nullable=False),
         sa.Column(
             "role",
-            sa.Enum("USER", "ORGANIZER", "ADMIN", name="userrole"),
+            sa.Enum("user", "organizer", "admin", name="userrole"),
             nullable=False,
         ),
         sa.Column("token_version", sa.Integer(), nullable=False),

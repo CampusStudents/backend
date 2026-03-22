@@ -14,12 +14,18 @@ if TYPE_CHECKING:
 
 
 class UserProfile(UUIDPkMixin, TimestampMixin, Base):
-    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), unique=True)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), unique=True
+    )
     first_name: Mapped[str] = mapped_column(String(100))
     last_name: Mapped[str] = mapped_column(String(100))
     bio: Mapped[str | None] = mapped_column(TEXT)
-    city_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("cities.id", ondelete="SET NULL"))
-    university_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("universities.id", ondelete="SET NULL"))
+    city_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("cities.id", ondelete="SET NULL")
+    )
+    university_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("universities.id", ondelete="SET NULL")
+    )
 
     user: Mapped["User"] = relationship(back_populates="profile", lazy="raise")
     city: Mapped["City"] = relationship(lazy="joined")

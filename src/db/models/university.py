@@ -15,5 +15,7 @@ class University(UUIDPkMixin, TimestampMixin, Base):
     __tablename__ = "universities"
     name: Mapped[str]
     short_name: Mapped[str]
-    city_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("cities.id", ondelete="SET NULL"))
+    city_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("cities.id", ondelete="SET NULL")
+    )
     city: Mapped["City"] = relationship(lazy="joined")

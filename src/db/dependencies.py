@@ -1,6 +1,16 @@
 from src.db.db_helper import db_helper
+from src.db.repository.refresh_session import RefreshSessionRepository
+from src.db.repository.user import UserRepository
 from src.db.unit_of_work import UnitOfWork
 
 
 def get_unit_of_work() -> UnitOfWork:
     return UnitOfWork(db_helper.async_session_factory)
+
+
+def get_user_repository() -> UserRepository:
+    return UserRepository()
+
+
+def get_refresh_session_repository() -> RefreshSessionRepository:
+    return RefreshSessionRepository()

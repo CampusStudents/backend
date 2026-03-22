@@ -33,15 +33,15 @@ class SQLAlchemyRepository[Model: Base]:
             return res.scalar_one_or_none()
         return res.scalars().all()
 
-    async def delete_by_id(
-            self, session: AsyncSession, entity_id: UUID
-    ) -> None:
+    async def delete_by_id(self, session: AsyncSession, entity_id: UUID) -> None:
         await session.execute(delete(self.model).where(self.model.id == entity_id))
 
     async def get_by_id(self, session: AsyncSession, id: UUID) -> Model:
         return await session.get(self.model, id)
 
-    async def update(self, session: AsyncSession, entity_id: UUID, data: dict) -> Model | None:
+    async def update(
+            self, session: AsyncSession, entity_id: UUID, data: dict
+    ) -> Model | None:
         data_to_update = self._filter_model_fields(data)
         if not data_to_update:
             return

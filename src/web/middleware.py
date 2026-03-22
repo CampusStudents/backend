@@ -1,4 +1,5 @@
 """Exception handler middleware for FastAPI application."""
+
 import logging
 from uuid import uuid4
 
@@ -16,18 +17,16 @@ from src.core.exceptions.service.base import (
     ForbiddenError,
     AuthError,
 )
-from src.core.utils.helpers import get_time, get_uuid
+from src.core.utils.helpers import get_time
 from src.web.api.monitoring import router as monitoring_router
+
 logger = logging.getLogger(__name__)
 
 MONITORING_ROUTE_PATHS = {
-    route.path
-    for route in monitoring_router.routes
-    if hasattr(route, "path")
+    route.path for route in monitoring_router.routes if hasattr(route, "path")
 }
-MONITORING_ROUTE_PATHS.update(
-    f"/api{path}" for path in MONITORING_ROUTE_PATHS
-)
+MONITORING_ROUTE_PATHS.update([f"/api{path}" for path in MONITORING_ROUTE_PATHS])
+
 
 async def request_handler(request: Request, call_next):
     """Middleware used by FastAPI to process each request"""
@@ -82,7 +81,9 @@ class ErrorProcessor:
         if status_code < 500:
             logger.info("Client-side error: status=%s error=%s", status_code, str(exc))
         else:
-            logger.warning("Server-side error: status=%s error=%s", status_code, str(exc))
+            logger.warning(
+                "Server-side error: status=%s error=%s", status_code, str(exc)
+            )
 
     @classmethod
     def process_app_exception(cls, exc: AppError) -> JSONResponse:
@@ -116,4 +117,3 @@ class ErrorProcessor:
         detail = exc.detail
         cls.log_exception(exc, status_code)
         return JSONResponse(status_code=status_code, content={"detail": detail})
-
