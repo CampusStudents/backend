@@ -33,5 +33,6 @@ class NoAccessError(ForbiddenError):
 class BadRequestError(AppError):
     message = "Bad Request"
 
+
 class AuthError(AppError):
     message = "Auth Error"
