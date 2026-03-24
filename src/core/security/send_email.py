@@ -34,7 +34,10 @@ async def send_email(
 
 
 def generate_link_for_verification(token: str) -> str:
-    return f"{settings.app_url}/api/v1/auth/verify?token={token}"
+    base_path = (
+        f"{settings.api.prefix}{settings.api.v1.prefix}{settings.api.v1.auth}/verify"
+    )
+    return f"{settings.app_url}{base_path}?token={token}"
 
 
 def _create_service_token(email: str, expire_minutes: int, purpose: str) -> str:
