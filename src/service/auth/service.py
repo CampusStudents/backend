@@ -7,7 +7,6 @@ from src.core.config import settings
 from src.core.exceptions.service.auth import (
     NotAuthenticatedError,
     InvalidTokenError,
-    TokenExpiredError,
 )
 from src.core.exceptions.service.base import AuthError
 from src.core.exceptions.service.user import UserNotFoundError
@@ -70,7 +69,7 @@ class AuthService:
         }
         return self._create_token(
             payload=payload,
-            token_type=settings.auth.access_token_field,
+            token_type=settings.auth.access_token_type,
             expire_minutes=settings.auth.access_token_expire_minutes,
         )
 
@@ -81,13 +80,13 @@ class AuthService:
         }
         token = self._create_token(
             payload=payload,
-            token_type=settings.auth.refresh_token_field,
+            token_type=settings.auth.refresh_token_type,
             expire_minutes=settings.auth.refresh_token_expire_days * 24 * 60,
         )
         await self.session_repository.create(
             session,
             {
-                "refresh_token": token,
+                "refresh_jti": payload["jti"],
                 "expires_at": datetime.now()
                               + timedelta(days=settings.auth.refresh_token_expire_days),
                 "user_id": user.id,
@@ -113,39 +112,37 @@ class AuthService:
 
     async def refresh_token(self, token: str) -> TokenPair:
         async with self.uow as uow:
-            # Проверяем, существует ли токен в БД
+            payload = decode_jwt(token)
+            if (
+                    payload.get(settings.auth.token_type_field)
+                    != settings.auth.refresh_token_type
+            ):
+                raise InvalidTokenError
+            jti = payload.get("jti")
+            if not jti:
+                raise InvalidTokenError
+
             token_obj = await self.session_repository.get_by_filters(
-                uow.session, {"refresh_token": token}
+                uow.session, {"refresh_jti": jti}
             )
             if not token_obj:
                 raise InvalidTokenError
 
-            # Проверяем payload токена
-            payload = decode_jwt(token)
-            if (
-                    payload.get(settings.auth.token_type_field)
-                    != settings.auth.refresh_token_field
-            ):
-                raise InvalidTokenError
-
-            # Проверяем пользователя
             email = payload.get("sub")
             user = await self._get_user_by_email(uow.session, email)
             if not user:
                 raise InvalidTokenError
 
-            # Создаем новый токен и удаляем старый
             new_tokens = await self._create_auth_tokens(uow.session, user)
-            await self.session_repository.delete_by_token(uow.session, token)
+            await self.session_repository.delete_by_jti(uow.session, jti)
             await uow.commit()
 
-            # Возвращаем новый токен
             return new_tokens
 
     async def get_current_user(self, payload: dict) -> UserDTO:
         if (
-                payload.get(settings.auth.token_type_field)
-                != settings.auth.access_token_field
+                payload.get("type")
+                != settings.auth.access_token_type
         ):
             raise NotAuthenticatedError
 
@@ -162,7 +159,13 @@ class AuthService:
 
     async def logout(self, refresh_token: str) -> None:
         async with self.uow as uow:
-            await self.session_repository.delete_by_token(uow.session, refresh_token)
+            try:
+                payload = decode_jwt(refresh_token)
+            except InvalidTokenError:
+                return
+            jti = payload.get("jti")
+            if jti:
+                await self.session_repository.delete_by_jti(uow.session, jti)
             await uow.commit()
 
     async def change_password(
@@ -198,10 +201,6 @@ class AuthService:
             if user.is_verified:
                 return
 
-            expires_in = payload["exp"]
-            if datetime.now().timestamp() >= expires_in:
-                raise TokenExpiredError
-
             user.is_verified = True
             await uow.commit()
 
@@ -217,10 +216,6 @@ class AuthService:
             user = await self._get_user_by_email(session, email)
             if user is None:
                 raise InvalidTokenError
-
-            expires_in = payload["exp"]
-            if datetime.now().timestamp() >= expires_in:
-                raise TokenExpiredError
 
             user.password_hash = get_password_hash(new_password)
             # Завершаем все активные сессии пользователя для безопасности

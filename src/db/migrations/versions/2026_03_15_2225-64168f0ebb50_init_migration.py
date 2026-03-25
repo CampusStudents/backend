@@ -61,7 +61,7 @@ def upgrade() -> None:
     )
     op.create_table(
         "refresh_sessions",
-        sa.Column("refresh_token", sa.Text(), nullable=False),
+        sa.Column("refresh_jti", sa.Text(), nullable=False),
         sa.Column("user_id", sa.UUID(), nullable=False),
         sa.Column("expires_at", sa.DateTime(), nullable=False),
         sa.Column("id", sa.UUID(), nullable=False),
@@ -80,7 +80,7 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_refresh_sessions")),
         sa.UniqueConstraint(
-            "refresh_token", name=op.f("uq_refresh_sessions_refresh_token")
+            "refresh_jti", name=op.f("uq_refresh_sessions_refresh_jti")
         ),
     )
     op.create_table(

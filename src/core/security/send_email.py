@@ -4,7 +4,7 @@ from email.message import EmailMessage
 import aiosmtplib
 
 from .utils import encode_jwt, decode_jwt
-from src.core.exceptions.service.auth import InvalidTokenError
+from src.core.exceptions.service.auth import InvalidTokenError, TokenExpiredError
 from src.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -13,8 +13,8 @@ TOKEN_PURPOSE_FIELD = "purpose"
 VERIFY_EMAIL_PURPOSE = "verify_email"
 PASSWORD_RESET_PURPOSE = "password_reset"
 
-VERIFY_EMAIL_EXPIRE_MINUTES = 3 * 60
-PASSWORD_RESET_EXPIRE_MINUTES = 15 * 60
+VERIFY_EMAIL_EXPIRE_MINUTES = 3
+PASSWORD_RESET_EXPIRE_MINUTES = 15
 
 
 async def send_email(
@@ -45,6 +45,8 @@ def _create_service_token(email: str, expire_minutes: int, purpose: str) -> str:
 def _verify_service_token(token: str, expected_purpose: str):
     try:
         payload = decode_jwt(token)
+    except TokenExpiredError:
+        raise
     except InvalidTokenError:
         return None
 
@@ -91,7 +93,7 @@ async def send_password_reset_email(email: str):
         from_email=settings.email.from_email,
         to_email=email,
         subject="Восстановление пароля на Campus",
-        body=f"Для сброса пароля перейдите по ссылке: {generate_link_for_password_reset(token)}. Ссылка действительна {PASSWORD_RESET_EXPIRE_MINUTES // 60} минут.",
+        body=f"Для сброса пароля перейдите по ссылке: {generate_link_for_password_reset(token)}. Ссылка действительна {PASSWORD_RESET_EXPIRE_MINUTES} минут.",
     )
 
 

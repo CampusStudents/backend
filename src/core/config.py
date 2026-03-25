@@ -45,9 +45,8 @@ class AuthConfig(BaseModel):
     algorithm: str = "RS256"
     refresh_token_expire_days: int = 30
     access_token_expire_minutes: int = 15
-    token_type_field: str = "type"
-    access_token_field: str = "access"
-    refresh_token_field: str = "refresh"
+    access_token_type: str = "access"
+    refresh_token_type: str = "refresh"
     token_version_field: str = "token_version"
 
 

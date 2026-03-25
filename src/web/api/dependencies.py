@@ -1,10 +1,9 @@
-from datetime import datetime, UTC
 from typing import Annotated
 
 from fastapi import Depends, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-from src.core.exceptions.service.auth import InvalidTokenError, TokenExpiredError
+from src.core.exceptions.service.auth import InvalidTokenError
 from src.core.exceptions.service.base import ForbiddenError, NoAccessError
 from src.core.security.utils import decode_jwt
 from src.db.models.user import UserRole
@@ -24,9 +23,6 @@ def get_current_token_payload(
 ) -> dict:
     token = credentials.credentials
     payload = decode_jwt(token)
-    exp = payload["exp"]
-    if exp < datetime.now(UTC).timestamp():
-        raise TokenExpiredError()
     return payload
 
 

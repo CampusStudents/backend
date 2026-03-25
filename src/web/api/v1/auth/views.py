@@ -2,7 +2,6 @@ import logging
 
 from fastapi import APIRouter, Response, Depends, BackgroundTasks
 from pydantic import BaseModel, EmailStr
-from starlette.responses import HTMLResponse
 
 from src.core.config import settings
 from src.core.exceptions.service.auth import InvalidTokenError, TokenExpiredError
@@ -135,20 +134,20 @@ async def quit_all(
     response.delete_cookie("refresh_token")
 
 
-@router.get("/verify", response_class=HTMLResponse)
+@router.get("/verify")
 async def verify_account(
         token: str,
         service: AuthServiceDep,
 ):
     """
-    Страница подтверждения email (HTML).
+    Подтверждение email (JSON).
     Ссылка из письма ведет сюда.
     """
     try:
         await service.verify_account(token)
-        return "<h3>Ваш аккаунт успешно подтверждён ✅</h3>"
+        return {"message": "Account successfully verified"}
     except (InvalidTokenError, TokenExpiredError):
-        return "<h3>Неверная или просроченная ссылка ❌</h3>"
+        raise BadRequestError(detail="Invalid or expired token")
 
 
 @router.post("/resend_verification")
@@ -160,7 +159,7 @@ async def resend_verification(
     Повторная отправка письма с подтверждением email.
     """
     if user.is_verified:
-        raise BadRequestError(detail="Email уже подтвержден")
+        raise BadRequestError(detail="Email already verified")
 
     background_tasks.add_task(send_verification_email, str(user.email))
     return {"message": "Письмо с верификацией отправлено"}
@@ -189,7 +188,7 @@ async def forgot_password(
     except Exception as e:
         # Игнорируем любые ошибки, чтобы не раскрывать информацию о существовании email
         logger.warning(
-            f"Ошибка при запросе восстановления пароля для {data.email}: {e}"
+            f"Error during password reset request for {data.email}: {e}"
         )
     return {
         "message": (
@@ -211,4 +210,4 @@ async def reset_password(
         await service.reset_password(data.token, data.new_password.get_secret_value())
         return {"message": "Пароль успешно изменен"}
     except (InvalidTokenError, TokenExpiredError):
-        raise BadRequestError(detail="Неверный или просроченный токен")
+        raise BadRequestError(detail="Invalid or expired token")
