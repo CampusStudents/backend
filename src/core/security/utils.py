@@ -3,10 +3,10 @@ from datetime import datetime, UTC, timedelta
 import bcrypt
 import jwt
 import logging
-from jwt import PyJWTError
+from jwt import PyJWTError, ExpiredSignatureError
 
 from src.core.config import settings
-from src.core.exceptions.service.auth import InvalidTokenError
+from src.core.exceptions.service.auth import InvalidTokenError, TokenExpiredError
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +32,9 @@ def decode_jwt(
 ) -> dict:
     try:
         decoded_jwt = jwt.decode(jwt_token, public_key, algorithms=[algorithm])
+    except ExpiredSignatureError:
+        logger.info("JWT expired")
+        raise TokenExpiredError("JWT expired")
     except PyJWTError:
         logger.error("Error decoding jwt", exc_info=True)
         raise InvalidTokenError("Error decoding jwt token")

@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 from sqlalchemy import ForeignKey, String, TEXT
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from .base import Base
+from src.db.models import Base
 from src.db.models.mixins import UUIDPkMixin, TimestampMixin
 
 if TYPE_CHECKING:

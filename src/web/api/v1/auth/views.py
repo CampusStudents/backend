@@ -1,12 +1,12 @@
 import logging
 
-from fastapi import APIRouter, Response, Depends, BackgroundTasks
+from fastapi import APIRouter, Response, Depends, BackgroundTasks, Security
 from pydantic import BaseModel, EmailStr
-from starlette.responses import HTMLResponse
 
 from src.core.config import settings
 from src.core.exceptions.service.auth import InvalidTokenError, TokenExpiredError
 from src.core.exceptions.service.base import BadRequestError
+from src.core.security.scopes import Scope
 from src.core.security.send_email import (
     send_verification_email,
     send_password_reset_email,
@@ -22,8 +22,8 @@ from src.web.api.dependencies import (
     AuthServiceDep,
     UserServiceDep,
     get_token_for_refresh,
-    CurrentUserDep,
     get_current_active_user,
+    get_current_verified_user,
 )
 
 router = APIRouter()
@@ -32,7 +32,11 @@ logger = logging.getLogger(__name__)
 
 
 @router.get("/me")
-async def get_user(user: CurrentUserDep):
+async def get_user(
+        user: UserDTO = Security(
+            get_current_verified_user, scopes=[Scope.AUTH_ME]
+        ),
+):
     """
     Получение текущего пользователя.
     """
@@ -96,6 +100,7 @@ async def refresh_jwt(
 async def logout(
         response: Response,
         auth_service: AuthServiceDep,
+        _user: UserDTO = Security(get_current_verified_user, scopes=[Scope.AUTH_LOGOUT]),
         token: str = Depends(get_token_for_refresh),
 ) -> None:
     """
@@ -109,8 +114,10 @@ async def logout(
 @router.post("/change_password")
 async def change_password(
         data: ChangePasswordSchema,
-        user: CurrentUserDep,
         auth_service: AuthServiceDep,
+        user: UserDTO = Security(
+            get_current_verified_user, scopes=[Scope.AUTH_CHANGE_PASSWORD]
+        ),
 ) -> None:
     """
     Смена пароля текущего пользователя.
@@ -126,7 +133,9 @@ async def change_password(
 async def quit_all(
         response: Response,
         auth_service: AuthServiceDep,
-        user: CurrentUserDep,
+        user: UserDTO = Security(
+            get_current_verified_user, scopes=[Scope.AUTH_QUIT_ALL]
+        ),
 ) -> None:
     """
     Завершение всех сессий пользователя.
@@ -135,32 +144,34 @@ async def quit_all(
     response.delete_cookie("refresh_token")
 
 
-@router.get("/verify", response_class=HTMLResponse)
+@router.get("/verify")
 async def verify_account(
         token: str,
         service: AuthServiceDep,
 ):
     """
-    Страница подтверждения email (HTML).
+    Подтверждение email (JSON).
     Ссылка из письма ведет сюда.
     """
     try:
         await service.verify_account(token)
-        return "<h3>Ваш аккаунт успешно подтверждён ✅</h3>"
+        return {"message": "Account successfully verified"}
     except (InvalidTokenError, TokenExpiredError):
-        return "<h3>Неверная или просроченная ссылка ❌</h3>"
+        raise BadRequestError(detail="Invalid or expired token")
 
 
 @router.post("/resend_verification")
 async def resend_verification(
         background_tasks: BackgroundTasks,
-        user: UserDTO = Depends(get_current_active_user),
+        user: UserDTO = Security(
+            get_current_active_user, scopes=[Scope.AUTH_RESEND_VERIFICATION]
+        ),
 ):
     """
     Повторная отправка письма с подтверждением email.
     """
     if user.is_verified:
-        raise BadRequestError(detail="Email уже подтвержден")
+        raise BadRequestError(detail="Email already verified")
 
     background_tasks.add_task(send_verification_email, str(user.email))
     return {"message": "Письмо с верификацией отправлено"}
@@ -189,7 +200,7 @@ async def forgot_password(
     except Exception as e:
         # Игнорируем любые ошибки, чтобы не раскрывать информацию о существовании email
         logger.warning(
-            f"Ошибка при запросе восстановления пароля для {data.email}: {e}"
+            f"Error during password reset request for {data.email}: {e}"
         )
     return {
         "message": (
@@ -211,4 +222,4 @@ async def reset_password(
         await service.reset_password(data.token, data.new_password.get_secret_value())
         return {"message": "Пароль успешно изменен"}
     except (InvalidTokenError, TokenExpiredError):
-        raise BadRequestError(detail="Неверный или просроченный токен")
+        raise BadRequestError(detail="Invalid or expired token")
