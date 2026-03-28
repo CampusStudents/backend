@@ -1,12 +1,11 @@
 from typing import Annotated
 
 from fastapi import Depends, Request
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer, SecurityScopes
 
 from src.core.exceptions.service.auth import InvalidTokenError
-from src.core.exceptions.service.base import ForbiddenError, NoAccessError
+from src.core.exceptions.service.base import ForbiddenError
 from src.core.security.utils import decode_jwt
-from src.db.models.user import UserRole
 from src.service.auth.service import AuthService
 from src.service.dependencies import get_auth_service, get_user_service
 from src.service.user.schema import UserDTO
@@ -36,15 +35,24 @@ async def get_token_for_refresh(
 
 
 async def get_current_user(
+        security_scopes: SecurityScopes,
         service: AuthServiceDep,
         payload: dict = Depends(get_current_token_payload),
 ) -> UserDTO:
-    return await service.get_current_user(payload)
+    user = await service.get_current_user(payload)
+    user_scopes = user.scopes
+    for scope in security_scopes.scopes:
+        if scope not in user_scopes and "*" not in user_scopes:
+            raise ForbiddenError("Insufficient permissions")
+    return user
 
 
 async def get_current_active_user(
-        user: UserDTO = Depends(get_current_user),
+        security_scopes: SecurityScopes,
+        service: AuthServiceDep,
+        payload: dict = Depends(get_current_token_payload),
 ) -> UserDTO:
+    user = await get_current_user(security_scopes, service, payload)
     if not user.is_active:
         raise ForbiddenError(
             detail="User inactive",
@@ -53,8 +61,11 @@ async def get_current_active_user(
 
 
 async def get_current_verified_user(
-        user: UserDTO = Depends(get_current_active_user),
+        security_scopes: SecurityScopes,
+        service: AuthServiceDep,
+        payload: dict = Depends(get_current_token_payload),
 ) -> UserDTO:
+    user = await get_current_active_user(security_scopes, service, payload)
     if not user.is_verified:
         raise ForbiddenError(
             "Email not verified. Please verify your email address.",
@@ -63,8 +74,11 @@ async def get_current_verified_user(
 
 
 async def get_current_active_user_with_profile(
-        user: UserDTO = Depends(get_current_verified_user),
+        security_scopes: SecurityScopes,
+        service: AuthServiceDep,
+        payload: dict = Depends(get_current_token_payload),
 ) -> UserDTO:
+    user = await get_current_verified_user(security_scopes, service, payload)
     if not user.is_profile_completed:
         raise ForbiddenError(
             "Profile not completed. "
@@ -72,14 +86,3 @@ async def get_current_active_user_with_profile(
         )
     return user
 
-
-async def get_current_superuser(
-        user: UserDTO = Depends(get_current_active_user_with_profile),
-) -> UserDTO:
-    if not user.role == UserRole.ADMIN:
-        raise NoAccessError()
-    return user
-
-
-CurrentUserDep = Annotated[UserDTO, Depends(get_current_verified_user)]
-AdminUserDep = Annotated[UserDTO, Depends(get_current_superuser)]

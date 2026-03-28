@@ -50,6 +50,39 @@ class AuthConfig(BaseModel):
     token_version_field: str = "token_version"
 
 
+class RBACConfig(BaseModel):
+    initial_subjects: list[str] = ["users"]
+    initial_actions: list[str] = [
+        "detail",
+        "list",
+        "create",
+        "update",
+        "delete",
+    ]
+    initial_permission_schema: dict[str, list[str]] = {
+        "admin": ["*"],
+        "public": [
+            "auth:login",
+            "auth:register",
+            "auth:refresh",
+            "auth:verify",
+            "auth:forgot_password",
+            "auth:reset_password",
+        ],
+        "user": [
+            "auth:me",
+            "auth:logout",
+            "auth:change_password",
+            "auth:quit_all",
+            "auth:resend_verification",
+        ],
+    }
+    admin_email: str = "admin@example.com"
+    admin_password: str = "admin"
+    public_role_name: str = "public"
+    admin_role_name: str = "admin"
+
+
 class EmailConfig(BaseModel):
     smtp_host: str = "maildev"
     smtp_port: int = 1025
@@ -98,6 +131,7 @@ class Settings(BaseSettings):
     run: RunConfig = RunConfig()
     api: ApiPrefix = ApiPrefix()
     auth: AuthConfig = AuthConfig()
+    rbac: RBACConfig
     email: EmailConfig = EmailConfig()
     db: DatabaseConfig
     app_url: str = "127.0.0.1:8000"

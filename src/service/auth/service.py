@@ -10,6 +10,7 @@ from src.core.exceptions.service.auth import (
 )
 from src.core.exceptions.service.base import AuthError
 from src.core.exceptions.service.user import UserNotFoundError
+from src.core.security.rbac import get_user_scopes
 from src.core.security.token import TokenPair
 from src.core.security.utils import (
     verify_password,
@@ -47,6 +48,11 @@ class AuthService:
             session, {"email": email}, one=True
         )
 
+    async def _get_user_by_email_with_roles(
+            self, session: AsyncSession, email: str
+    ) -> User | None:
+        return await self.user_repository.get_by_email_with_roles(session, email)
+
     async def _get_user_by_email_or_raise(
             self, session: AsyncSession, email: str
     ) -> User:
@@ -57,7 +63,7 @@ class AuthService:
 
     @classmethod
     def _create_token(cls, payload: dict, token_type: str, expire_minutes: int) -> str:
-        jwt_payload = {settings.auth.token_type_field: token_type}
+        jwt_payload = {"type": token_type}
         jwt_payload.update(payload)
         return encode_jwt(jwt_payload, expire_minutes)
 
@@ -114,7 +120,7 @@ class AuthService:
         async with self.uow as uow:
             payload = decode_jwt(token)
             if (
-                    payload.get(settings.auth.token_type_field)
+                    payload.get("type")
                     != settings.auth.refresh_token_type
             ):
                 raise InvalidTokenError
@@ -152,10 +158,13 @@ class AuthService:
             raise NotAuthenticatedError
 
         async with self.uow as uow:
-            user = await self._get_user_by_email(uow.session, email)
+            user = await self._get_user_by_email_with_roles(uow.session, email)
             if not user or user.token_version != token_version:
                 raise NotAuthenticatedError
-            return UserDTO.model_validate(user)
+            scopes = get_user_scopes(user)
+            dto = UserDTO.model_validate(user)
+            dto.scopes = scopes
+            return dto
 
     async def logout(self, refresh_token: str) -> None:
         async with self.uow as uow:
