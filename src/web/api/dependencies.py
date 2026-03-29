@@ -85,4 +85,3 @@ async def get_current_active_user_with_profile(
             "Please complete your profile at POST /api/v1/users/profile",
         )
     return user
-

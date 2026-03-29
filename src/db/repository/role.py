@@ -12,9 +12,7 @@ class RoleRepository(SQLAlchemyRepository):
         result = await session.execute(select(Role).where(Role.name == name))
         return result.scalar_one_or_none()
 
-    async def get_by_names(
-            self, session: AsyncSession, names: list[str]
-    ) -> list[Role]:
+    async def get_by_names(self, session: AsyncSession, names: list[str]) -> list[Role]:
         if not names:
             return []
         result = await session.execute(select(Role).where(Role.name.in_(names)))

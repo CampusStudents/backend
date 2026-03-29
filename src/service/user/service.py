@@ -13,7 +13,10 @@ from src.core.security.utils import get_password_hash
 
 class UserService:
     def __init__(
-            self, uow: UnitOfWork, repository: UserRepository, role_repository: RoleRepository
+            self,
+            uow: UnitOfWork,
+            repository: UserRepository,
+            role_repository: RoleRepository,
     ):
         self.uow = uow
         self.repository = repository
@@ -65,9 +68,7 @@ class UserService:
             if not user:
                 raise UserNotFoundError("User not found")
 
-            roles = await self.role_repository.get_by_names(
-                uow.session, data.roles
-            )
+            roles = await self.role_repository.get_by_names(uow.session, data.roles)
             if len(roles) != len(data.roles):
                 raise BadRequestError("One or more roles not found")
 

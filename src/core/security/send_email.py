@@ -1,5 +1,6 @@
 import logging
 from email.message import EmailMessage
+from datetime import timedelta
 
 import aiosmtplib
 
@@ -37,9 +38,9 @@ def generate_link_for_verification(token: str) -> str:
     return f"{settings.app_url}/api/v1/auth/verify?token={token}"
 
 
-def _create_service_token(email: str, expire_minutes: int, purpose: str) -> str:
+def _create_service_token(email: str, expires_in: timedelta, purpose: str) -> str:
     payload = {"sub": email, TOKEN_PURPOSE_FIELD: purpose}
-    return encode_jwt(payload, expire_minutes)
+    return encode_jwt(payload, expires_in)
 
 
 def _verify_service_token(token: str, expected_purpose: str):
@@ -57,7 +58,7 @@ def _verify_service_token(token: str, expected_purpose: str):
 
 def create_token_for_verification(email: str):
     return _create_service_token(
-        email, VERIFY_EMAIL_EXPIRE_MINUTES, VERIFY_EMAIL_PURPOSE
+        email, timedelta(minutes=VERIFY_EMAIL_EXPIRE_MINUTES), VERIFY_EMAIL_PURPOSE
     )
 
 
@@ -79,7 +80,7 @@ def verify_verification_token(token: str):
 
 def create_token_for_password_reset(email: str):
     return _create_service_token(
-        email, PASSWORD_RESET_EXPIRE_MINUTES, PASSWORD_RESET_PURPOSE
+        email, timedelta(minutes=PASSWORD_RESET_EXPIRE_MINUTES), PASSWORD_RESET_PURPOSE
     )
 
 

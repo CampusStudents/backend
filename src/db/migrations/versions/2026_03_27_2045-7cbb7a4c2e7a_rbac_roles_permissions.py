@@ -64,7 +64,9 @@ def upgrade() -> None:
             name=op.f("fk_role_permissions_role_id_roles"),
             ondelete="CASCADE",
         ),
-        sa.PrimaryKeyConstraint("role_id", "permission_id", name=op.f("pk_role_permissions")),
+        sa.PrimaryKeyConstraint(
+            "role_id", "permission_id", name=op.f("pk_role_permissions")
+        ),
     )
     op.create_table(
         "user_roles",
@@ -89,9 +91,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.execute(
-        "CREATE TYPE userrole AS ENUM ('user', 'organizer', 'admin')"
-    )
+    op.execute("CREATE TYPE userrole AS ENUM ('user', 'organizer', 'admin')")
     op.add_column(
         "users",
         sa.Column(

@@ -1,4 +1,4 @@
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta
 from uuid import uuid4, UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -62,10 +62,12 @@ class AuthService:
         return user
 
     @classmethod
-    def _create_token(cls, payload: dict, token_type: str, expire_minutes: int) -> str:
+    def _create_token(
+            cls, payload: dict, token_type: str, expires_in: timedelta
+    ) -> str:
         jwt_payload = {"type": token_type}
         jwt_payload.update(payload)
-        return encode_jwt(jwt_payload, expire_minutes)
+        return encode_jwt(jwt_payload, expires_in)
 
     def _create_access_token(self, user: User):
         payload = {
@@ -76,7 +78,7 @@ class AuthService:
         return self._create_token(
             payload=payload,
             token_type=settings.auth.access_token_type,
-            expire_minutes=settings.auth.access_token_expire_minutes,
+            expires_in=timedelta(minutes=settings.auth.access_token_expire_minutes),
         )
 
     async def _create_refresh_token(self, session: AsyncSession, user: User):
@@ -87,7 +89,7 @@ class AuthService:
         token = self._create_token(
             payload=payload,
             token_type=settings.auth.refresh_token_type,
-            expire_minutes=settings.auth.refresh_token_expire_days * 24 * 60,
+            expires_in=timedelta(days=settings.auth.refresh_token_expire_days),
         )
         await self.session_repository.create(
             session,
@@ -119,10 +121,7 @@ class AuthService:
     async def refresh_token(self, token: str) -> TokenPair:
         async with self.uow as uow:
             payload = decode_jwt(token)
-            if (
-                    payload.get("type")
-                    != settings.auth.refresh_token_type
-            ):
+            if payload.get("type") != settings.auth.refresh_token_type:
                 raise InvalidTokenError
             jti = payload.get("jti")
             if not jti:
@@ -146,10 +145,7 @@ class AuthService:
             return new_tokens
 
     async def get_current_user(self, payload: dict) -> UserDTO:
-        if (
-                payload.get("type")
-                != settings.auth.access_token_type
-        ):
+        if payload.get("type") != settings.auth.access_token_type:
             raise NotAuthenticatedError
 
         email = payload.get("sub")

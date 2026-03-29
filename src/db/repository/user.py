@@ -22,9 +22,7 @@ class UserRepository(SQLAlchemyRepository):
         result = await session.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def get_by_id_with_roles(
-            self, session: AsyncSession, user_id
-    ) -> User | None:
+    async def get_by_id_with_roles(self, session: AsyncSession, user_id) -> User | None:
         stmt = (
             select(User)
             .options(selectinload(User.roles))
