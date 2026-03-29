@@ -1,10 +1,11 @@
 import logging
 from email.message import EmailMessage
+from datetime import timedelta
 
 import aiosmtplib
 
 from .utils import encode_jwt, decode_jwt
-from src.core.exceptions.service.auth import InvalidTokenError
+from src.core.exceptions.service.auth import InvalidTokenError, TokenExpiredError
 from src.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -13,8 +14,8 @@ TOKEN_PURPOSE_FIELD = "purpose"
 VERIFY_EMAIL_PURPOSE = "verify_email"
 PASSWORD_RESET_PURPOSE = "password_reset"
 
-VERIFY_EMAIL_EXPIRE_MINUTES = 3 * 60
-PASSWORD_RESET_EXPIRE_MINUTES = 15 * 60
+VERIFY_EMAIL_EXPIRE_MINUTES = 3
+PASSWORD_RESET_EXPIRE_MINUTES = 15
 
 
 async def send_email(
@@ -37,14 +38,16 @@ def generate_link_for_verification(token: str) -> str:
     return f"{settings.app_url}/api/v1/auth/verify?token={token}"
 
 
-def _create_service_token(email: str, expire_minutes: int, purpose: str) -> str:
+def _create_service_token(email: str, expires_in: timedelta, purpose: str) -> str:
     payload = {"sub": email, TOKEN_PURPOSE_FIELD: purpose}
-    return encode_jwt(payload, expire_minutes)
+    return encode_jwt(payload, expires_in)
 
 
 def _verify_service_token(token: str, expected_purpose: str):
     try:
         payload = decode_jwt(token)
+    except TokenExpiredError:
+        raise
     except InvalidTokenError:
         return None
 
@@ -55,7 +58,7 @@ def _verify_service_token(token: str, expected_purpose: str):
 
 def create_token_for_verification(email: str):
     return _create_service_token(
-        email, VERIFY_EMAIL_EXPIRE_MINUTES, VERIFY_EMAIL_PURPOSE
+        email, timedelta(minutes=VERIFY_EMAIL_EXPIRE_MINUTES), VERIFY_EMAIL_PURPOSE
     )
 
 
@@ -77,7 +80,7 @@ def verify_verification_token(token: str):
 
 def create_token_for_password_reset(email: str):
     return _create_service_token(
-        email, PASSWORD_RESET_EXPIRE_MINUTES, PASSWORD_RESET_PURPOSE
+        email, timedelta(minutes=PASSWORD_RESET_EXPIRE_MINUTES), PASSWORD_RESET_PURPOSE
     )
 
 
@@ -91,7 +94,7 @@ async def send_password_reset_email(email: str):
         from_email=settings.email.from_email,
         to_email=email,
         subject="Восстановление пароля на Campus",
-        body=f"Для сброса пароля перейдите по ссылке: {generate_link_for_password_reset(token)}. Ссылка действительна {PASSWORD_RESET_EXPIRE_MINUTES // 60} минут.",
+        body=f"Для сброса пароля перейдите по ссылке: {generate_link_for_password_reset(token)}. Ссылка действительна {PASSWORD_RESET_EXPIRE_MINUTES} минут.",
     )
 
 

@@ -1,5 +1,4 @@
 from datetime import datetime
-from enum import Enum
 from typing import TYPE_CHECKING
 
 from sqlalchemy import String
@@ -7,21 +6,16 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
 from .mixins import UUIDPkMixin, TimestampMixin
+from .rbac import user_roles
 
 if TYPE_CHECKING:
     from .profile import UserProfile
-
-
-class UserRole(str, Enum):
-    USER = "user"
-    ORGANIZER = "organizer"
-    ADMIN = "admin"
+    from .rbac import Role
 
 
 class User(UUIDPkMixin, TimestampMixin, Base):
     email: Mapped[str] = mapped_column(String(255), unique=True)
     password_hash: Mapped[str]
-    role: Mapped[UserRole] = mapped_column(default=UserRole.USER)
     token_version: Mapped[int] = mapped_column(default=0)
     is_active: Mapped[bool] = mapped_column(default=True)
     is_verified: Mapped[bool] = mapped_column(default=False)
@@ -33,4 +27,10 @@ class User(UUIDPkMixin, TimestampMixin, Base):
         cascade="all, delete-orphan",
         passive_deletes=True,
         lazy="raise",
+    )
+
+    roles: Mapped[list["Role"]] = relationship(
+        secondary=user_roles,
+        back_populates="users",
+        lazy="selectin",
     )

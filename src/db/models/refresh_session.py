@@ -9,7 +9,7 @@ from .base import Base
 
 
 class RefreshSession(UUIDPkMixin, TimestampMixin, Base):
-    refresh_token: Mapped[str] = mapped_column(Text, unique=True)
+    refresh_jti: Mapped[str] = mapped_column(Text, unique=True)
     user_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE")
     )
