@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 from typing import Literal
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -8,8 +9,12 @@ LOG_DEFAULT_FORMAT = (
     "[%(asctime)s.%(msecs)03d] %(module)10s:%(lineno)-3d %(levelname)-7s - %(message)s"
 )
 
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-def configure_logging(level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO") -> None:
+
+def configure_logging(
+        level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO",
+) -> None:
     """Configure base logging for the application."""
     logging.basicConfig(
         level=getattr(logging, level, logging.INFO),
@@ -26,11 +31,62 @@ class RunConfig(BaseModel):
 class ApiV1Prefix(BaseModel):
     prefix: str = "/v1"
     users: str = "/users"
+    auth: str = "/auth"
 
 
 class ApiPrefix(BaseModel):
     prefix: str = "/api"
     v1: ApiV1Prefix = ApiV1Prefix()
+
+
+class AuthConfig(BaseModel):
+    private_key_path: Path = BASE_DIR / "src" / "certs" / "jwt-private.pem"
+    public_key_path: Path = BASE_DIR / "src" / "certs" / "jwt-public.pem"
+    algorithm: str = "RS256"
+    refresh_token_expire_days: int = 30
+    access_token_expire_minutes: int = 15
+    access_token_type: str = "access"
+    refresh_token_type: str = "refresh"
+    token_version_field: str = "token_version"
+
+
+class RBACConfig(BaseModel):
+    initial_subjects: list[str] = ["users"]
+    initial_actions: list[str] = [
+        "detail",
+        "list",
+        "create",
+        "update",
+        "delete",
+    ]
+    initial_permission_schema: dict[str, list[str]] = {
+        "admin": ["*"],
+        "public": [
+            "auth:login",
+            "auth:register",
+            "auth:refresh",
+            "auth:verify",
+            "auth:forgot_password",
+            "auth:reset_password",
+        ],
+        "user": [
+            "auth:me",
+            "auth:logout",
+            "auth:change_password",
+            "auth:quit_all",
+            "auth:resend_verification",
+        ],
+    }
+    admin_email: str = "admin@example.com"
+    admin_password: str = "admin"
+    public_role_name: str = "public"
+    admin_role_name: str = "admin"
+
+
+class EmailConfig(BaseModel):
+    smtp_host: str = "maildev"
+    smtp_port: int = 1025
+    from_email: str = "campus@mail.ru"
 
 
 class DatabaseConfig(BaseModel):
@@ -66,14 +122,19 @@ class DatabaseConfig(BaseModel):
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=(".env.example", ".env"),
+        env_file=".env",
+        extra="ignore",
         case_sensitive=False,
         env_nested_delimiter="__",
         env_prefix="APP__",
     )
     run: RunConfig = RunConfig()
     api: ApiPrefix = ApiPrefix()
+    auth: AuthConfig = AuthConfig()
+    rbac: RBACConfig
+    email: EmailConfig = EmailConfig()
     db: DatabaseConfig
+    app_url: str = "127.0.0.1:8000"
 
 
 settings = Settings()
