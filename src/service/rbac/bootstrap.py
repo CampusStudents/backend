@@ -130,9 +130,7 @@ async def _resolve_permissions(
 
 async def _get_user_with_roles(session: AsyncSession, email: str) -> User | None:
     result = await session.execute(
-        select(User)
-        .where(User.email == email)
-        .options(selectinload(User.roles))
+        select(User).where(User.email == email).options(selectinload(User.roles))
     )
     return result.scalar_one_or_none()
 
@@ -145,12 +143,14 @@ async def _ensure_admin_user(session: AsyncSession, roles: dict[str, Role]) -> N
 
     user = await _get_user_with_roles(session, admin_email)
     if not user:
-        session.add(User(
-            email=admin_email,
-            password_hash=get_password_hash(admin_password),
-            is_active=True,
-            is_verified=True,
-        ))
+        session.add(
+            User(
+                email=admin_email,
+                password_hash=get_password_hash(admin_password),
+                is_active=True,
+                is_verified=True,
+            )
+        )
         await session.flush()
         user = await _get_user_with_roles(session, admin_email)
 

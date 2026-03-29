@@ -1,4 +1,5 @@
 import logging
+from datetime import timedelta
 
 from fastapi import APIRouter, Response, Depends, BackgroundTasks, Security
 from pydantic import BaseModel, EmailStr
@@ -44,13 +45,16 @@ async def get_user(
 
 
 def set_refresh_token_to_response(response: Response, token: str):
+    max_age = int(
+        timedelta(days=settings.auth.refresh_token_expire_days).total_seconds()
+    )
     response.set_cookie(
         "refresh_token",
         token,
-        max_age=settings.auth.refresh_token_expire_days * 24 * 60 * 60,
+        max_age=max_age,
         httponly=True,
         samesite="lax",
-        # secure=True, # TODO: enable in production with HTTPS
+        # secure=True,
     )
 
 

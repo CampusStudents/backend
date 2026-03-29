@@ -13,13 +13,13 @@ logger = logging.getLogger(__name__)
 
 def encode_jwt(
         payload: dict,
-        expire_minutes: int,
+        expires_in: timedelta,
         private_key: str = settings.auth.private_key_path.read_text(),
         algorithm: str = settings.auth.algorithm,
 ):
     to_encode = payload.copy()
     now = datetime.now(UTC)
-    expire = now + timedelta(minutes=expire_minutes)
+    expire = now + expires_in
     to_encode.update(iat=now, exp=expire)
     encoded_jwt = jwt.encode(to_encode, private_key, algorithm=algorithm)
     return encoded_jwt
