@@ -13,8 +13,8 @@ if TYPE_CHECKING:
 
 
 class Event(UUIDPkMixin, TimestampMixin, Base):
-    organizer_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("organizations.id", ondelete="CASCADE")
+    organizer_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("organizations.id", ondelete="SET NULL")
     )
 
     title: Mapped[str] = mapped_column(String(255))

@@ -12,11 +12,11 @@ if TYPE_CHECKING:
 
 
 class Organization(UUIDPkMixin, TimestampMixin, Base):
-    owner_user_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE")
+    owner_user_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL")
     )
     name: Mapped[str] = mapped_column(String(255))
     description: Mapped[str | None] = mapped_column(Text)
-    contact_email: Mapped[str | None]
+    contact_email: Mapped[str] = mapped_column(String(255))
 
     owner: Mapped[User] = relationship(lazy="raise")
