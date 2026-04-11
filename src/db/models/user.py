@@ -24,20 +24,20 @@ class User(UUIDPkMixin, TimestampMixin, Base):
     is_profile_completed: Mapped[bool] = mapped_column(default=False)
     last_login_at: Mapped[datetime | None]
 
-    profile: Mapped[UserProfile] = relationship(
+    profile: Mapped["UserProfile"] = relationship(
         back_populates="user",
         cascade="all, delete-orphan",
         passive_deletes=True,
         lazy="raise",
     )
 
-    roles: Mapped[list[Role]] = relationship(
+    roles: Mapped[list["Role"]] = relationship(
         secondary=user_roles,
         back_populates="users",
         lazy="selectin",
     )
 
-    skills: Mapped[list[Skill]] = relationship(
+    skills: Mapped[list["Skill"]] = relationship(
         secondary=user_skills,
         back_populates="users",
         lazy="selectin",

@@ -27,6 +27,6 @@ class TeamMember(UUIDPkMixin, TimestampMixin, Base):
 
     joined_at: Mapped[datetime]
 
-    project: Mapped[Project] = relationship(lazy="raise")
-    user: Mapped[User] = relationship(lazy="raise")
-    role: Mapped[Role] = relationship(lazy="joined")
+    project: Mapped["Project"] = relationship(lazy="raise")
+    user: Mapped["User"] = relationship(lazy="raise")
+    role: Mapped["Role"] = relationship(lazy="joined")

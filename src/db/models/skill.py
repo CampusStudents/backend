@@ -21,7 +21,7 @@ user_skills = Table(
 class Skill(UUIDPkMixin, TimestampMixin, Base):
     name: Mapped[str] = mapped_column(String(100), unique=True)
 
-    users: Mapped[list[User]] = relationship(
+    users: Mapped[list["User"]] = relationship(
         secondary=user_skills,
         back_populates="skills",
         lazy="raise",

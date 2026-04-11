@@ -27,10 +27,10 @@ class Project(UUIDPkMixin, TimestampMixin, Base):
 
     type: Mapped[str | None]
     format: Mapped[str | None]
-    city: Mapped[City] = relationship(lazy="joined")
+    city: Mapped["City"] = relationship(lazy="joined")
 
     deadline: Mapped[datetime | None]
     status: Mapped[str]
 
-    owner: Mapped[User] = relationship(lazy="raise")
-    event: Mapped[Event] = relationship(lazy="joined")
+    owner: Mapped["User"] = relationship(lazy="raise")
+    event: Mapped["Event"] = relationship(lazy="joined")
