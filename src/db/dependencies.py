@@ -1,4 +1,5 @@
 from src.db.db_helper import db_helper
+from src.db.repository.city import CityRepository
 from src.db.repository.refresh_session import RefreshSessionRepository
 from src.db.repository.role import RoleRepository
 from src.db.repository.user import UserRepository
@@ -11,6 +12,10 @@ def get_unit_of_work() -> UnitOfWork:
 
 def get_user_repository() -> UserRepository:
     return UserRepository()
+
+
+def get_city_repository() -> CityRepository:
+    return CityRepository()
 
 
 def get_role_repository() -> RoleRepository:

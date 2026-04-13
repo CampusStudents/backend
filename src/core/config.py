@@ -32,6 +32,7 @@ class ApiV1Prefix(BaseModel):
     prefix: str = "/v1"
     users: str = "/users"
     auth: str = "/auth"
+    cities: str = "/cities"
 
 
 class ApiPrefix(BaseModel):
@@ -51,7 +52,7 @@ class AuthConfig(BaseModel):
 
 
 class RBACConfig(BaseModel):
-    initial_subjects: list[str] = ["users"]
+    initial_subjects: list[str] = ["users", "cities"]
     initial_actions: list[str] = [
         "detail",
         "list",
@@ -75,6 +76,8 @@ class RBACConfig(BaseModel):
             "auth:change_password",
             "auth:quit_all",
             "auth:resend_verification",
+            "cities:list",
+            "cities:detail",
         ],
     }
     admin_email: str = "admin@example.com"
