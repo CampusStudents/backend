@@ -21,16 +21,19 @@ class Project(UUIDPkMixin, TimestampMixin, Base):
     event_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("events.id", ondelete="SET NULL")
     )
+    city_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("cities.id", ondelete="SET NULL")
+    )
 
     title: Mapped[str] = mapped_column(String(255))
     description: Mapped[str | None] = mapped_column(Text)
 
     type: Mapped[str | None]
     format: Mapped[str | None]
-    city: Mapped["City"] = relationship(lazy="joined")
 
     deadline: Mapped[datetime | None]
     status: Mapped[str]
 
-    owner: Mapped["User"] = relationship(lazy="raise")
-    event: Mapped["Event"] = relationship(lazy="joined")
+    owner: Mapped["User | None"] = relationship(lazy="raise")
+    event: Mapped["Event | None"] = relationship(lazy="joined")
+    city: Mapped["City | None"] = relationship(lazy="joined")

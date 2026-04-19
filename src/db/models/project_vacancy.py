@@ -13,6 +13,8 @@ if TYPE_CHECKING:
 
 
 class ProjectVacancy(UUIDPkMixin, TimestampMixin, Base):
+    __tablename__ = "project_vacancies"
+
     project_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("projects.id", ondelete="CASCADE")
     )

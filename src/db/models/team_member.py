@@ -21,7 +21,7 @@ class TeamMember(UUIDPkMixin, TimestampMixin, Base):
     user_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE")
     )
-    role_id: Mapped[uuid.UUID] = mapped_column(
+    role_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("roles.id", ondelete="SET NULL")
     )
 
@@ -29,4 +29,4 @@ class TeamMember(UUIDPkMixin, TimestampMixin, Base):
 
     project: Mapped["Project"] = relationship(lazy="raise")
     user: Mapped["User"] = relationship(lazy="raise")
-    role: Mapped["Role"] = relationship(lazy="joined")
+    role: Mapped["Role | None"] = relationship(lazy="joined")
