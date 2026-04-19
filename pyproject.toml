@@ -43,6 +43,7 @@ select = [
 ]
 ignore = [
     "RUF002",
+    "UP037",
     "E501",     # line too long — уже контролируем line-length
     "COM812",   # trailing comma (многие оставляют)
     "ISC001", # конфликтует с formatter иногда

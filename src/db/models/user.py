@@ -7,10 +7,12 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .base import Base
 from .mixins import TimestampMixin, UUIDPkMixin
 from .rbac import user_roles
+from .skill import user_skills
 
 if TYPE_CHECKING:
     from .profile import UserProfile
     from .rbac import Role
+    from .skill import Skill
 
 
 class User(UUIDPkMixin, TimestampMixin, Base):
@@ -31,6 +33,12 @@ class User(UUIDPkMixin, TimestampMixin, Base):
 
     roles: Mapped[list[Role]] = relationship(
         secondary=user_roles,
+        back_populates="users",
+        lazy="selectin",
+    )
+
+    skills: Mapped[list["Skill"]] = relationship(
+        secondary=user_skills,
         back_populates="users",
         lazy="selectin",
     )
