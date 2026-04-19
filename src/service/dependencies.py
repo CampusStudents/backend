@@ -1,12 +1,14 @@
 from src.db.dependencies import (
     get_city_repository,
-    get_unit_of_work,
     get_refresh_session_repository,
-    get_user_repository,
     get_role_repository,
+    get_unit_of_work,
+    get_university_repository,
+    get_user_repository,
 )
 from src.service.auth.service import AuthService
 from src.service.city.service import CityService
+from src.service.university.service import UniversityService
 from src.service.user.service import UserService
 
 
@@ -22,3 +24,11 @@ def get_user_service() -> UserService:
 
 def get_city_service() -> CityService:
     return CityService(get_unit_of_work(), get_city_repository())
+
+
+def get_university_service() -> UniversityService:
+    return UniversityService(
+        get_unit_of_work(),
+        get_university_repository(),
+        get_city_repository(),
+    )

@@ -17,7 +17,7 @@ class CityBaseSchema(BaseModel):
 class CreateCitySchema(CityBaseSchema):
     pass
 
-class UpdateCitySchema(BaseModel):
+class UpdateCitySchema(CityBaseSchema):
     pass
 
 
