@@ -1,14 +1,13 @@
 from uuid import UUID
 
-from src.core.config import settings
-from src.core.exceptions.service.base import BadRequestError
+from src.core.exceptions.service.base import AlreadyExistsError, BadRequestError
 from src.core.exceptions.service.user import UserNotFoundError
+from src.core.security.utils import get_password_hash
 from src.db.repository.role import RoleRepository
 from src.db.repository.user import UserRepository
 from src.db.unit_of_work import UnitOfWork
+
 from .schema import RegisterSchema, UpdateUserRolesSchema, UserDTO
-from src.core.exceptions.service.base import AlreadyExistsError
-from src.core.security.utils import get_password_hash
 
 
 class UserService:

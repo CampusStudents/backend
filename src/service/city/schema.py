@@ -2,6 +2,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, field_validator
 
+
 class CityBaseSchema(BaseModel):
     name: str
 

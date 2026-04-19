@@ -1,9 +1,9 @@
-from datetime import datetime, UTC, timedelta
+import logging
+from datetime import UTC, datetime, timedelta
 
 import bcrypt
 import jwt
-import logging
-from jwt import PyJWTError, ExpiredSignatureError
+from jwt import ExpiredSignatureError, PyJWTError
 
 from src.core.config import settings
 from src.core.exceptions.service.auth import InvalidTokenError, TokenExpiredError

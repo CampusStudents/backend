@@ -3,8 +3,9 @@ from uuid import UUID
 from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .base import SQLAlchemyRepository
 from src.db.models import RefreshSession
+
+from .base import SQLAlchemyRepository
 
 
 class RefreshSessionRepository(SQLAlchemyRepository):

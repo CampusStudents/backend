@@ -3,19 +3,18 @@
 import logging
 from uuid import uuid4
 
-from fastapi import Request, Response, HTTPException
+from fastapi import HTTPException, Request, Response
 from fastapi.responses import JSONResponse
-
 
 from src.core.exceptions.api.base import InternalServerException
 from src.core.exceptions.service.base import (
     AppError,
-    NotFoundError,
-    ConflictError,
-    InvalidInputError,
-    BadRequestError,
-    ForbiddenError,
     AuthError,
+    BadRequestError,
+    ConflictError,
+    ForbiddenError,
+    InvalidInputError,
+    NotFoundError,
 )
 from src.core.utils.helpers import get_time
 from src.web.api.monitoring import router as monitoring_router
@@ -78,7 +77,7 @@ class ErrorProcessor:
     @classmethod
     def log_exception(cls, exc: Exception, status_code: int) -> None:
         """Log exception based on status code."""
-        if status_code < 500:
+        if status_code < 500: # noqa: PLR2004
             logger.info("Client-side error: status=%s error=%s", status_code, str(exc))
         else:
             logger.warning(
