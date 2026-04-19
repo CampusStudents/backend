@@ -54,7 +54,7 @@ class AuthConfig(BaseModel):
 
 
 class RBACConfig(BaseModel):
-    initial_subjects: list[str] = ["users", "cities", "universities"]
+    initial_subjects: list[str] = ["users", "cities", "universities", "user_profiles"]
     initial_actions: list[str] = [
         "detail",
         "list",

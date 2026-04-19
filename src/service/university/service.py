@@ -80,11 +80,8 @@ class UniversityService:
     async def _ensure_city_exists(
         self,
         session: AsyncSession,
-        city_id: UUID | None,
+        city_id: UUID,
     ) -> None:
-        if city_id is None:
-            return
-
         city = await self.city_repository.get_by_id(session, city_id)
         if not city:
             raise CityNotFoundError()

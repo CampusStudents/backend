@@ -23,7 +23,7 @@ router = APIRouter(prefix=settings.api.v1.users)
 async def get_my_profile(
     service: UserProfileServiceDep,
     current_user: UserDTO = Security(
-        get_current_active_user,
+        get_current_verified_user,
         scopes=[Scope.USER_PROFILES_DETAIL],
     ),
 ) -> UserProfileDTO:
@@ -35,7 +35,7 @@ async def create_my_profile(
     data: CreateUserProfileSchema,
     service: UserProfileServiceDep,
     current_user: UserDTO = Security(
-        get_current_active_user,
+        get_current_verified_user,
         scopes=[Scope.USER_PROFILES_CREATE],
     ),
 ) -> UserProfileDTO:
@@ -47,7 +47,7 @@ async def update_my_profile(
     data: UpdateUserProfileSchema,
     service: UserProfileServiceDep,
     current_user: UserDTO = Security(
-        get_current_active_user,
+        get_current_verified_user,
         scopes=[Scope.USER_PROFILES_UPDATE],
     ),
 ) -> UserProfileDTO:
