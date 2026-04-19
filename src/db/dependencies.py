@@ -4,6 +4,7 @@ from src.db.repository.refresh_session import RefreshSessionRepository
 from src.db.repository.role import RoleRepository
 from src.db.repository.university import UniversityRepository
 from src.db.repository.user import UserRepository
+from src.db.repository.user_profile import UserProfileRepository
 from src.db.unit_of_work import UnitOfWork
 
 
@@ -21,6 +22,10 @@ def get_city_repository() -> CityRepository:
 
 def get_university_repository() -> UniversityRepository:
     return UniversityRepository()
+
+
+def get_user_profile_repository() -> UserProfileRepository:
+    return UserProfileRepository()
 
 
 def get_role_repository() -> RoleRepository:

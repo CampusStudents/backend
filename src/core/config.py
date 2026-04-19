@@ -82,6 +82,9 @@ class RBACConfig(BaseModel):
             "cities:detail",
             "universities:list",
             "universities:detail",
+            "user_profiles:detail",
+            "user_profiles:create",
+            "user_profiles:update",
         ],
     }
     admin_email: str = "admin@example.com"
