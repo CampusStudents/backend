@@ -5,7 +5,7 @@ from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
-from .mixins import UUIDPkMixin, TimestampMixin
+from .mixins import TimestampMixin, UUIDPkMixin
 from .rbac import user_roles
 
 if TYPE_CHECKING:
@@ -22,14 +22,14 @@ class User(UUIDPkMixin, TimestampMixin, Base):
     is_profile_completed: Mapped[bool] = mapped_column(default=False)
     last_login_at: Mapped[datetime | None]
 
-    profile: Mapped["UserProfile"] = relationship(
+    profile: Mapped[UserProfile | None] = relationship(
         back_populates="user",
         cascade="all, delete-orphan",
         passive_deletes=True,
         lazy="raise",
     )
 
-    roles: Mapped[list["Role"]] = relationship(
+    roles: Mapped[list[Role]] = relationship(
         secondary=user_roles,
         back_populates="users",
         lazy="selectin",
