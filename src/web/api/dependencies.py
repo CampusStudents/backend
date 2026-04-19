@@ -7,13 +7,28 @@ from src.core.exceptions.service.auth import InvalidTokenError
 from src.core.exceptions.service.base import ForbiddenError
 from src.core.security.utils import decode_jwt
 from src.service.auth.service import AuthService
-from src.service.dependencies import get_auth_service, get_user_service
+from src.service.city.service import CityService
+from src.service.dependencies import (
+    get_auth_service,
+    get_city_service,
+    get_university_service,
+    get_user_profile_service,
+    get_user_service,
+)
+from src.service.university.service import UniversityService
 from src.service.user.schema import UserDTO
 from src.service.user.service import UserService
+from src.service.user_profile.service import UserProfileService
 
 http_bearer = HTTPBearer()
 
 AuthServiceDep = Annotated[AuthService, Depends(get_auth_service)]
+CityServiceDep = Annotated[CityService, Depends(get_city_service)]
+UniversityServiceDep = Annotated[UniversityService, Depends(get_university_service)]
+UserProfileServiceDep = Annotated[
+    UserProfileService,
+    Depends(get_user_profile_service),
+]
 UserServiceDep = Annotated[UserService, Depends(get_user_service)]
 
 

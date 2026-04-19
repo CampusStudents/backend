@@ -1,5 +1,5 @@
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
 
 from fastapi import FastAPI
 
@@ -9,8 +9,8 @@ from src.service.rbac.bootstrap import bootstrap_rbac
 
 @asynccontextmanager
 async def lifespan_setup(
-        app: FastAPI,
-) -> AsyncGenerator[None, None]:  # pragma: no cover
+        app: FastAPI, # noqa: ARG001
+) -> AsyncGenerator[None]:  # pragma: no cover
     """
     Actions to run on application startup.
 

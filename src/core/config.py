@@ -1,6 +1,7 @@
 import logging
 from pathlib import Path
 from typing import Literal
+
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.engine import URL
@@ -32,6 +33,8 @@ class ApiV1Prefix(BaseModel):
     prefix: str = "/v1"
     users: str = "/users"
     auth: str = "/auth"
+    cities: str = "/cities"
+    universities: str = "/universities"
 
 
 class ApiPrefix(BaseModel):
@@ -51,7 +54,7 @@ class AuthConfig(BaseModel):
 
 
 class RBACConfig(BaseModel):
-    initial_subjects: list[str] = ["users"]
+    initial_subjects: list[str] = ["users", "cities", "universities", "user_profiles"]
     initial_actions: list[str] = [
         "detail",
         "list",
@@ -75,6 +78,13 @@ class RBACConfig(BaseModel):
             "auth:change_password",
             "auth:quit_all",
             "auth:resend_verification",
+            "cities:list",
+            "cities:detail",
+            "universities:list",
+            "universities:detail",
+            "user_profiles:detail",
+            "user_profiles:create",
+            "user_profiles:update",
         ],
     }
     admin_email: str = "admin@example.com"

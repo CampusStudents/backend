@@ -5,7 +5,7 @@ from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
-from .mixins import UUIDPkMixin, TimestampMixin
+from .mixins import TimestampMixin, UUIDPkMixin
 
 if TYPE_CHECKING:
     from .city import City
@@ -18,4 +18,4 @@ class University(UUIDPkMixin, TimestampMixin, Base):
     city_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("cities.id", ondelete="SET NULL")
     )
-    city: Mapped["City"] = relationship(lazy="joined")
+    city: Mapped[City | None] = relationship(lazy="joined")

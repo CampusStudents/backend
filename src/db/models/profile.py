@@ -1,16 +1,16 @@
 import uuid
 from typing import TYPE_CHECKING
 
-from sqlalchemy import ForeignKey, String, TEXT
+from sqlalchemy import TEXT, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from src.db.models import Base
-from src.db.models.mixins import UUIDPkMixin, TimestampMixin
+from .base import Base
+from .mixins import TimestampMixin, UUIDPkMixin
 
 if TYPE_CHECKING:
-    from .user import User
-    from .university import University
     from .city import City
+    from .university import University
+    from .user import User
 
 
 class UserProfile(UUIDPkMixin, TimestampMixin, Base):
@@ -27,6 +27,6 @@ class UserProfile(UUIDPkMixin, TimestampMixin, Base):
         ForeignKey("universities.id", ondelete="SET NULL")
     )
 
-    user: Mapped["User"] = relationship(back_populates="profile", lazy="raise")
-    city: Mapped["City"] = relationship(lazy="joined")
-    university: Mapped["University"] = relationship(lazy="raise")
+    user: Mapped[User] = relationship(back_populates="profile", lazy="raise")
+    city: Mapped[City | None] = relationship(lazy="joined")
+    university: Mapped[University | None] = relationship(lazy="raise")

@@ -1,10 +1,11 @@
 import uuid
-from datetime import datetime, tzinfo
+from datetime import datetime
 
-from sqlalchemy import Text, ForeignKey, DATETIME
-from sqlalchemy.orm import mapped_column, Mapped
+from sqlalchemy import ForeignKey, Text
+from sqlalchemy.orm import Mapped, mapped_column
 
-from src.db.models.mixins import UUIDPkMixin, TimestampMixin
+from src.db.models.mixins import TimestampMixin, UUIDPkMixin
+
 from .base import Base
 
 

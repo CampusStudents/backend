@@ -1,8 +1,8 @@
-from typing import Sequence
+from collections.abc import Sequence
 from uuid import UUID
 
+from sqlalchemy import delete, insert, inspect, select, update
 from sqlalchemy.ext.asyncio.session import AsyncSession
-from sqlalchemy import insert, select, delete, inspect, update
 
 from src.db.models import Base
 
