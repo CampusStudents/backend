@@ -25,5 +25,5 @@ class ProjectVacancy(UUIDPkMixin, TimestampMixin, Base):
     required_count: Mapped[int]
     description: Mapped[str | None] = mapped_column(Text)
 
-    project: Mapped["Project"] = relationship(lazy="raise")
-    role: Mapped["Role"] = relationship(lazy="joined")
+    project: Mapped[Project] = relationship(lazy="raise")
+    role: Mapped[Role] = relationship(lazy="joined")

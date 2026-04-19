@@ -30,4 +30,4 @@ class Event(UUIDPkMixin, TimestampMixin, Base):
 
     status: Mapped[str]
 
-    organizer: Mapped["Organization | None"] = relationship(lazy="raise")
+    organizer: Mapped[Organization | None] = relationship(lazy="raise")

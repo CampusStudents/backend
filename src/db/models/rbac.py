@@ -46,7 +46,7 @@ class Permission(UUIDPkMixin, TimestampMixin, Base):
 class Role(UUIDPkMixin, TimestampMixin, Base):
     name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
 
-    permissions: Mapped[list["Permission"]] = relationship(
+    permissions: Mapped[list[Permission]] = relationship(
         secondary=role_permissions,
         back_populates="roles",
         lazy="selectin",

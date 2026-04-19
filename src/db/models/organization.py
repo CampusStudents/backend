@@ -19,4 +19,4 @@ class Organization(UUIDPkMixin, TimestampMixin, Base):
     description: Mapped[str | None] = mapped_column(Text)
     contact_email: Mapped[str] = mapped_column(String(255))
 
-    owner: Mapped["User | None"] = relationship(lazy="raise")
+    owner: Mapped[User | None] = relationship(lazy="raise")

@@ -34,6 +34,6 @@ class Project(UUIDPkMixin, TimestampMixin, Base):
     deadline: Mapped[datetime | None]
     status: Mapped[str]
 
-    owner: Mapped["User | None"] = relationship(lazy="raise")
-    event: Mapped["Event | None"] = relationship(lazy="joined")
-    city: Mapped["City | None"] = relationship(lazy="joined")
+    owner: Mapped[User | None] = relationship(lazy="raise")
+    event: Mapped[Event | None] = relationship(lazy="joined")
+    city: Mapped[City | None] = relationship(lazy="joined")
