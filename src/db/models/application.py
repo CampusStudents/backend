@@ -26,5 +26,5 @@ class Application(UUIDPkMixin, TimestampMixin, Base):
 
     decided_at: Mapped[datetime | None]
 
-    vacancy: Mapped["ProjectVacancy"] = relationship(lazy="raise")
-    applicant: Mapped["User"] = relationship(lazy="raise")
+    vacancy: Mapped[ProjectVacancy] = relationship(lazy="raise")
+    applicant: Mapped[User] = relationship(lazy="raise")

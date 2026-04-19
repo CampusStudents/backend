@@ -23,5 +23,5 @@ class PortfolioItem(UUIDPkMixin, TimestampMixin, Base):
     )
     project_link: Mapped[str | None]
 
-    user: Mapped["User"] = relationship(lazy="raise")
-    role: Mapped["Role"] = relationship(lazy="joined")
+    user: Mapped[User] = relationship(lazy="raise")
+    role: Mapped[Role] = relationship(lazy="joined")

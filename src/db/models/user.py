@@ -37,7 +37,7 @@ class User(UUIDPkMixin, TimestampMixin, Base):
         lazy="selectin",
     )
 
-    skills: Mapped[list["Skill"]] = relationship(
+    skills: Mapped[list[Skill]] = relationship(
         secondary=user_skills,
         back_populates="users",
         lazy="selectin",
