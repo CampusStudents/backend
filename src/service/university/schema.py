@@ -1,34 +1,27 @@
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import BaseModel, ConfigDict
 
-EMPTY_TEXT_ERROR = "Value cannot be empty"
+from src.service.helpers import NonEmptyStr
 
 
 class UniversityBaseSchema(BaseModel):
-    name: str
-    short_name: str
+    name: NonEmptyStr
+    short_name: NonEmptyStr
     city_id: UUID
-
-    @field_validator("name", "short_name")
-    @classmethod
-    def validate_required_text(cls, value: str) -> str:
-        normalized = value.strip()
-        if not normalized:
-            raise ValueError(EMPTY_TEXT_ERROR)
-        return normalized
 
 
 class CreateUniversitySchema(UniversityBaseSchema):
     pass
 
 
-class UpdateUniversitySchema(UniversityBaseSchema):
-    pass
+class UpdateUniversitySchema(BaseModel):
+    name: NonEmptyStr | None = None
+    short_name: NonEmptyStr | None = None
+    city_id: UUID | None = None
 
 
 class UniversityDTO(UniversityBaseSchema):
     id: UUID
-    city_id: UUID | None
 
     model_config = ConfigDict(from_attributes=True)

@@ -24,7 +24,7 @@ class UniversityService:
 
     async def get_all(self) -> list[UniversityDTO]:
         async with self.uow as uow:
-            universities = await self.repository.get_all(uow.session)
+            universities = await self.repository.get_multi(uow.session)
             return [
                 UniversityDTO.model_validate(university)
                 for university in universities
@@ -52,11 +52,13 @@ class UniversityService:
     ) -> UniversityDTO:
         async with self.uow as uow:
             university = await self._get_by_id_or_raise(uow.session, university_id)
-            await self._ensure_city_exists(uow.session, data.city_id)
+            data_to_update = data.model_dump(exclude_unset=True)
+            if data_to_update.get("city_id") is not None:
+                await self._ensure_city_exists(uow.session, data_to_update["city_id"])
             updated_university = await self.repository.update(
                 uow.session,
                 university_id,
-                data.model_dump(),
+                data_to_update,
             )
             await uow.commit()
             return UniversityDTO.model_validate(updated_university or university)
@@ -72,7 +74,7 @@ class UniversityService:
         session: AsyncSession,
         university_id: UUID,
     ):
-        university = await self.repository.get_by_id(session, university_id)
+        university = await self.repository.get(session, {"id": university_id})
         if not university:
             raise UniversityNotFoundError()
         return university
@@ -82,6 +84,6 @@ class UniversityService:
         session: AsyncSession,
         city_id: UUID,
     ) -> None:
-        city = await self.city_repository.get_by_id(session, city_id)
+        city = await self.city_repository.get(session, {"id": city_id})
         if not city:
             raise CityNotFoundError()

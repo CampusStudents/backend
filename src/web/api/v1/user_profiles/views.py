@@ -42,7 +42,7 @@ async def create_my_profile(
     return await service.create(current_user.id, data)
 
 
-@router.put("/profile")
+@router.patch("/profile")
 async def update_my_profile(
     data: UpdateUserProfileSchema,
     service: UserProfileServiceDep,

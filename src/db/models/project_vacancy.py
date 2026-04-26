@@ -39,7 +39,6 @@ class ProjectVacancy(UUIDPkMixin, TimestampMixin, Base):
     skills: Mapped[list[Skill]] = relationship(
         secondary=project_vacancy_skills,
         back_populates="project_vacancies",
-        lazy="selectin",
     )
     applications: Mapped[list[Application]] = relationship(
         back_populates="vacancy",

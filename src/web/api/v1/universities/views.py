@@ -44,7 +44,7 @@ async def create_university(
     return await service.create(data)
 
 
-@router.put("/{university_id}")
+@router.patch("/{university_id}")
 async def update_university(
     university_id: UUID,
     data: UpdateUniversitySchema,

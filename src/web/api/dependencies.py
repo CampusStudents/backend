@@ -11,10 +11,14 @@ from src.service.city.service import CityService
 from src.service.dependencies import (
     get_auth_service,
     get_city_service,
+    get_project_service,
+    get_project_vacancy_service,
     get_university_service,
     get_user_profile_service,
     get_user_service,
 )
+from src.service.project.service import ProjectService
+from src.service.project_vacancy.service import ProjectVacancyService
 from src.service.university.service import UniversityService
 from src.service.user.schema import UserDTO
 from src.service.user.service import UserService
@@ -24,6 +28,11 @@ http_bearer = HTTPBearer()
 
 AuthServiceDep = Annotated[AuthService, Depends(get_auth_service)]
 CityServiceDep = Annotated[CityService, Depends(get_city_service)]
+ProjectServiceDep = Annotated[ProjectService, Depends(get_project_service)]
+ProjectVacancyServiceDep = Annotated[
+    ProjectVacancyService,
+    Depends(get_project_vacancy_service),
+]
 UniversityServiceDep = Annotated[UniversityService, Depends(get_university_service)]
 UserProfileServiceDep = Annotated[
     UserProfileService,

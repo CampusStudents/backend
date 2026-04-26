@@ -4,6 +4,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, SecretStr, field_validator
 
+from src.service.helpers import NonEmptyStr
+
 
 class UserDTO(BaseModel):
     id: UUID
@@ -51,16 +53,13 @@ class RegisterSchema(BaseModel):
 
 
 class UpdateUserRolesSchema(BaseModel):
-    roles: list[str]
+    roles: list[NonEmptyStr]
 
     @field_validator("roles")
     @classmethod
     def validate_roles(cls, value: list[str]) -> list[str]:
         if not value:
             raise ValueError("Roles list cannot be empty")
-        normalized = [role.strip() for role in value if role.strip()]
-        if len(normalized) != len(value):
-            raise ValueError("Roles must be non-empty strings")
-        if len(set(normalized)) != len(normalized):
+        if len(set(value)) != len(value):
             raise ValueError("Roles must be unique")
-        return normalized
+        return value

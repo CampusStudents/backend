@@ -40,7 +40,7 @@ async def create_city(
     return await service.create(data)
 
 
-@router.put("/{city_id}")
+@router.patch("/{city_id}")
 async def update_city(
     city_id: UUID,
     data: UpdateCitySchema,

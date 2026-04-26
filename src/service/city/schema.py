@@ -1,25 +1,20 @@
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import BaseModel, ConfigDict
+
+from src.service.helpers import NonEmptyStr
 
 
 class CityBaseSchema(BaseModel):
-    name: str
-
-    @field_validator("name")
-    @classmethod
-    def validate_name(cls, value: str) -> str:
-        normalized = value.strip()
-        if not normalized:
-            raise ValueError("City name cannot be empty")
-        return normalized
+    name: NonEmptyStr
 
 
 class CreateCitySchema(CityBaseSchema):
     pass
 
-class UpdateCitySchema(CityBaseSchema):
-    pass
+
+class UpdateCitySchema(BaseModel):
+    name: NonEmptyStr | None = None
 
 
 class CityDTO(CityBaseSchema):

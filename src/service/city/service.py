@@ -17,7 +17,7 @@ class CityService:
 
     async def get_all(self) -> list[CityDTO]:
         async with self.uow as uow:
-            cities = await self.repository.get_all(uow.session)
+            cities = await self.repository.get_multi(uow.session)
             return [CityDTO.model_validate(city) for city in cities]
 
     async def get_by_id(self, city_id: UUID) -> CityDTO:
@@ -35,13 +35,14 @@ class CityService:
     async def update(self, city_id: UUID, data: UpdateCitySchema) -> CityDTO:
         async with self.uow as uow:
             city = await self._get_by_id_or_raise(uow.session, city_id)
-            if city.name != data.name:
-                await self._ensure_name_is_unique(uow.session, data.name)
+            data_to_update = data.model_dump(exclude_unset=True)
+            if "name" in data_to_update and city.name != data_to_update["name"]:
+                await self._ensure_name_is_unique(uow.session, data_to_update["name"])
 
             updated_city = await self.repository.update(
                 uow.session,
                 city_id,
-                {"name": data.name},
+                data_to_update,
             )
             await uow.commit()
             return CityDTO.model_validate(updated_city or city)
@@ -53,12 +54,12 @@ class CityService:
             await uow.commit()
 
     async def _get_by_id_or_raise(self, session: AsyncSession, city_id: UUID):
-        city = await self.repository.get_by_id(session, city_id)
+        city = await self.repository.get(session, {"id": city_id})
         if not city:
             raise CityNotFoundError()
         return city
 
     async def _ensure_name_is_unique(self, session: AsyncSession, name: str) -> None:
-        existing_city = await self.repository.get_by_name(session, name)
+        existing_city = await self.repository.get_out(session, {"name": name})
         if existing_city:
             raise AlreadyExistsError("City already exists")

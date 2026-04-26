@@ -32,12 +32,12 @@ def decode_jwt(
 ) -> dict:
     try:
         decoded_jwt = jwt.decode(jwt_token, public_key, algorithms=[algorithm])
-    except ExpiredSignatureError:
+    except ExpiredSignatureError as err:
         logger.info("JWT expired")
-        raise TokenExpiredError("JWT expired")
-    except PyJWTError:
+        raise TokenExpiredError("JWT expired") from err
+    except PyJWTError as err:
         logger.error("Error decoding jwt", exc_info=True)
-        raise InvalidTokenError("Error decoding jwt token")
+        raise InvalidTokenError("Error decoding jwt token") from err
     return decoded_jwt
 
 

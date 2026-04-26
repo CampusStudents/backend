@@ -23,14 +23,14 @@ class UserService:
 
     async def get_by_email(self, email: str):
         async with self.uow as uow:
-            user = await self.repository.get_by_email_with_roles(uow.session, email)
+            user = await self.repository.get_out(uow.session, {"email": email})
             if user:
                 return UserDTO.model_validate(user)
             return None
 
     async def register(self, data: RegisterSchema):
         async with self.uow as uow:
-            existing_user = await self.repository.get_by_filters(
+            existing_user = await self.repository.get_out(
                 uow.session, {"email": data.email}
             )
             if existing_user:
@@ -45,8 +45,9 @@ class UserService:
                 },
             )
 
-            roles = await self.role_repository.get_by_names(
-                uow.session, ["public", "user"]
+            roles = await self.role_repository.get_multi(
+                uow.session,
+                {"name": ["public", "user"]},
             )
             if len(roles) != 2:
                 raise BadRequestError("User roles is not configured")
@@ -55,19 +56,22 @@ class UserService:
                 uow.session, user_id=user.id, role_ids=[role.id for role in roles]
             )
             await uow.commit()
-            user_with_roles = await self.repository.get_by_id_with_roles(
-                uow.session, user.id
+            user_with_roles = await self.repository.get_out(
+                uow.session,
+                {"id": user.id},
             )
-            print(user_with_roles.roles)
             return UserDTO.model_validate(user_with_roles or user)
 
     async def update_roles(self, user_id: UUID, data: UpdateUserRolesSchema) -> UserDTO:
         async with self.uow as uow:
-            user = await self.repository.get_by_id_with_roles(uow.session, user_id)
+            user = await self.repository.get_out(uow.session, {"id": user_id})
             if not user:
                 raise UserNotFoundError("User not found")
 
-            roles = await self.role_repository.get_by_names(uow.session, data.roles)
+            roles = await self.role_repository.get_multi(
+                uow.session,
+                {"name": data.roles},
+            )
             if len(roles) != len(data.roles):
                 raise BadRequestError("One or more roles not found")
 

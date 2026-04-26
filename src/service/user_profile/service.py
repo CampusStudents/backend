@@ -48,17 +48,19 @@ class UserProfileService:
         data: CreateUserProfileSchema,
     ) -> UserProfileDTO:
         async with self.uow as uow:
-            existing_profile = await self.repository.get_by_user_id(
+            existing_profile = await self.repository.get_out(
                 uow.session,
-                user_id,
+                {"user_id": user_id},
             )
             if existing_profile:
                 raise AlreadyExistsError("User profile already exists")
 
-            await self._ensure_related_entities_exist(uow.session, data)
+            data_to_create = data.model_dump()
+            await self._ensure_related_entities_exist(uow.session, data_to_create)
+            data_to_create["user_id"] = user_id
             profile = await self.repository.create(
                 uow.session,
-                {"user_id": user_id, **data.model_dump()},
+                data_to_create,
             )
             await self.user_repository.update(
                 uow.session,
@@ -75,11 +77,12 @@ class UserProfileService:
     ) -> UserProfileDTO:
         async with self.uow as uow:
             profile = await self._get_by_user_id_or_raise(uow.session, user_id)
-            await self._ensure_related_entities_exist(uow.session, data)
+            data_to_update = data.model_dump(exclude_unset=True)
+            await self._ensure_related_entities_exist(uow.session, data_to_update)
             updated_profile = await self.repository.update(
                 uow.session,
                 profile.id,
-                data.model_dump(),
+                data_to_update,
             )
             await self.user_repository.update(
                 uow.session,
@@ -94,30 +97,33 @@ class UserProfileService:
         session: AsyncSession,
         user_id: UUID,
     ):
-        profile = await self.repository.get_by_user_id(session, user_id)
+        profile = await self.repository.get_out(session, {"user_id": user_id})
         if not profile:
             raise UserProfileNotFoundError()
         return profile
 
     async def _ensure_user_exists(self, session: AsyncSession, user_id: UUID) -> None:
-        user = await self.user_repository.get_by_id(session, user_id)
+        user = await self.user_repository.get(session, {"id": user_id})
         if not user:
             raise UserNotFoundError()
 
     async def _ensure_related_entities_exist(
         self,
         session: AsyncSession,
-        data: CreateUserProfileSchema | UpdateUserProfileSchema,
+        data: dict,
     ) -> None:
-        if data.city_id is not None:
-            city = await self.city_repository.get_by_id(session, data.city_id)
+        city_id = data.get("city_id")
+        university_id = data.get("university_id")
+
+        if city_id is not None:
+            city = await self.city_repository.get(session, {"id": city_id})
             if not city:
                 raise CityNotFoundError()
 
-        if data.university_id is not None:
-            university = await self.university_repository.get_by_id(
+        if university_id is not None:
+            university = await self.university_repository.get(
                 session,
-                data.university_id,
+                {"id": university_id},
             )
             if not university:
                 raise UniversityNotFoundError()

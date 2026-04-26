@@ -45,14 +45,12 @@ class AuthService:
     async def _get_user_by_email(
             self, session: AsyncSession, email: str
     ) -> User | None:
-        return await self.user_repository.get_by_filters(
-            session, {"email": email}, one=True
-        )
+        return await self.user_repository.get_out(session, {"email": email})
 
     async def _get_user_by_email_with_roles(
             self, session: AsyncSession, email: str
     ) -> User | None:
-        return await self.user_repository.get_by_email_with_roles(session, email)
+        return await self.user_repository.get_out(session, {"email": email})
 
     async def _get_user_by_email_or_raise(
             self, session: AsyncSession, email: str
@@ -128,7 +126,7 @@ class AuthService:
             if not jti:
                 raise InvalidTokenError
 
-            token_obj = await self.session_repository.get_by_filters(
+            token_obj = await self.session_repository.get_out(
                 uow.session, {"refresh_jti": jti}
             )
             if not token_obj:
@@ -188,7 +186,7 @@ class AuthService:
     async def logout_all(self, user_id: UUID):
         async with self.uow as uow:
             await self.session_repository.delete_by_user_id(uow.session, user_id)
-            user = await self.user_repository.get_by_id(uow.session, user_id)
+            user = await self.user_repository.get(uow.session, {"id": user_id})
             if user:
                 user.token_version += 1
             await uow.commit()
