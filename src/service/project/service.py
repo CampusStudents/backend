@@ -2,6 +2,7 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.exceptions.service.base import BadRequestError
 from src.core.exceptions.service.base import NoAccessError
 from src.core.exceptions.service.city import CityNotFoundError
 from src.core.exceptions.service.project import ProjectNotFoundError
@@ -57,6 +58,9 @@ class ProjectService:
             self._ensure_owner_or_admin(project.owner_id, user)
 
             data_to_update = data.model_dump(exclude_unset=True)
+            if not data_to_update:
+                msg = "Empty update data"
+                raise BadRequestError(msg)
             if data_to_update.get("city_id") is not None:
                 await self._ensure_city_exists(uow.session, data_to_update["city_id"])
             updated_project = await self.repository.update(
