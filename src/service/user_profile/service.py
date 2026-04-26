@@ -53,7 +53,8 @@ class UserProfileService:
                 {"user_id": user_id},
             )
             if existing_profile:
-                raise AlreadyExistsError("User profile already exists")
+                msg = "User profile already exists"
+                raise AlreadyExistsError(msg)
 
             data_to_create = data.model_dump()
             await self._ensure_related_entities_exist(uow.session, data_to_create)

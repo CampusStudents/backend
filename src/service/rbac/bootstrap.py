@@ -112,7 +112,8 @@ async def _resolve_permissions(
             continue
 
         if ":" not in scope:
-            raise ValueError(f"Invalid scope format: {scope}")
+            msg = f"Invalid scope format: {scope}"
+            raise ValueError(msg)
 
         subject, action = scope.split(":", 1)
         key = (subject, action)
@@ -139,7 +140,8 @@ async def _ensure_admin_user(session: AsyncSession, roles: dict[str, Role]) -> N
     admin_email = settings.rbac.admin_email
     admin_password = settings.rbac.admin_password
     if not admin_email or not admin_password:
-        raise ValueError("Admin credentials are not configured")
+        msg = "Admin credentials are not configured"
+        raise ValueError(msg)
 
     user = await _get_user_with_roles(session, admin_email)
     if not user:

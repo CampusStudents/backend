@@ -5,6 +5,8 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from src.service.helpers import ShortDTO
 
+SKILL_IDS_UNIQUE_ERROR = "Skill ids must be unique"
+
 
 class ProjectVacancyBaseSchema(BaseModel):
     team_role_id: UUID
@@ -24,7 +26,7 @@ class ProjectVacancyBaseSchema(BaseModel):
     @classmethod
     def validate_unique_skill_ids(cls, value: list[UUID]) -> list[UUID]:
         if len(set(value)) != len(value):
-            raise ValueError("Skill ids must be unique")
+            raise ValueError(SKILL_IDS_UNIQUE_ERROR)
         return value
 
 
@@ -50,7 +52,7 @@ class UpdateProjectVacancySchema(BaseModel):
     @classmethod
     def validate_unique_skill_ids(cls, value: list[UUID] | None) -> list[UUID] | None:
         if value is not None and len(set(value)) != len(value):
-            raise ValueError("Skill ids must be unique")
+            raise ValueError(SKILL_IDS_UNIQUE_ERROR)
         return value
 
 

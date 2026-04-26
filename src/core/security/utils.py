@@ -33,11 +33,13 @@ def decode_jwt(
     try:
         decoded_jwt = jwt.decode(jwt_token, public_key, algorithms=[algorithm])
     except ExpiredSignatureError as err:
-        logger.info("JWT expired")
-        raise TokenExpiredError("JWT expired") from err
+        msg = "JWT expired"
+        logger.info(msg)
+        raise TokenExpiredError(msg) from err
     except PyJWTError as err:
-        logger.error("Error decoding jwt", exc_info=True)
-        raise InvalidTokenError("Error decoding jwt token") from err
+        logger.error("Error decoding jwt token", exc_info=True)
+        msg = "Error decoding jwt token"
+        raise InvalidTokenError(msg) from err
     return decoded_jwt
 
 

@@ -37,9 +37,11 @@ class RegisterSchema(BaseModel):
     @classmethod
     def validate_password(cls, value: Any) -> Any:
         if not isinstance(value, str):
-            raise ValueError("Password must be a string")
-        if len(value) < 8:
-            raise ValueError("Password must contain at least 8 characters")
+            msg = "Password must be a string"
+            raise TypeError(msg)
+        if len(value) < 8:  # noqa: PLR2004
+            msg = "Password must contain at least 8 characters"
+            raise ValueError(msg)
         # Длины пароля пока хватит
         # if not re.search(r"[A-Z]", value):
         #     raise ValueError("Password must contain at least one uppercase letter")
@@ -59,7 +61,9 @@ class UpdateUserRolesSchema(BaseModel):
     @classmethod
     def validate_roles(cls, value: list[str]) -> list[str]:
         if not value:
-            raise ValueError("Roles list cannot be empty")
+            msg = "Roles list cannot be empty"
+            raise ValueError(msg)
         if len(set(value)) != len(value):
-            raise ValueError("Roles must be unique")
+            msg = "Roles must be unique"
+            raise ValueError(msg)
         return value

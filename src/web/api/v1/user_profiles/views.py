@@ -12,7 +12,6 @@ from src.service.user_profile.schema import (
 )
 from src.web.api.dependencies import (
     UserProfileServiceDep,
-    get_current_active_user,
     get_current_verified_user,
 )
 

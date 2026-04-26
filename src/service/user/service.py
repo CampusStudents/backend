@@ -34,7 +34,8 @@ class UserService:
                 uow.session, {"email": data.email}
             )
             if existing_user:
-                raise AlreadyExistsError("Email already exists")
+                msg = "Email already exists"
+                raise AlreadyExistsError(msg)
             user = await self.repository.create(
                 uow.session,
                 {
@@ -49,8 +50,9 @@ class UserService:
                 uow.session,
                 {"name": ["public", "user"]},
             )
-            if len(roles) != 2:
-                raise BadRequestError("User roles is not configured")
+            if len(roles) != 2:  # noqa: PLR2004
+                msg = "User roles is not configured"
+                raise BadRequestError(msg)
 
             await self.repository.assign_roles(
                 uow.session, user_id=user.id, role_ids=[role.id for role in roles]
@@ -66,14 +68,16 @@ class UserService:
         async with self.uow as uow:
             user = await self.repository.get_out(uow.session, {"id": user_id})
             if not user:
-                raise UserNotFoundError("User not found")
+                msg = "User not found"
+                raise UserNotFoundError(msg)
 
             roles = await self.role_repository.get_multi(
                 uow.session,
                 {"name": data.roles},
             )
             if len(roles) != len(data.roles):
-                raise BadRequestError("One or more roles not found")
+                msg = "One or more roles not found"
+                raise BadRequestError(msg)
 
             await self.repository.replace_roles(
                 uow.session, user_id=user.id, role_ids=[role.id for role in roles]

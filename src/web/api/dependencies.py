@@ -55,7 +55,8 @@ async def get_token_for_refresh(
     token = request.cookies.get("refresh_token")
     if token:
         return token
-    raise InvalidTokenError("No token")
+    msg = "No token"
+    raise InvalidTokenError(msg)
 
 
 async def get_current_user(
@@ -67,7 +68,8 @@ async def get_current_user(
     user_scopes = user.scopes
     for scope in security_scopes.scopes:
         if scope not in user_scopes and "*" not in user_scopes:
-            raise ForbiddenError("Insufficient permissions")
+            msg = "Insufficient permissions"
+            raise ForbiddenError(msg)
     return user
 
 
@@ -91,9 +93,8 @@ async def get_current_verified_user(
 ) -> UserDTO:
     user = await get_current_active_user(security_scopes, service, payload)
     if not user.is_verified:
-        raise ForbiddenError(
-            "Email not verified. Please verify your email address.",
-        )
+        msg = "Email not verified. Please verify your email address."
+        raise ForbiddenError(msg)
     return user
 
 
@@ -104,8 +105,9 @@ async def get_current_active_user_with_profile(
 ) -> UserDTO:
     user = await get_current_verified_user(security_scopes, service, payload)
     if not user.is_profile_completed:
-        raise ForbiddenError(
+        msg = (
             "Profile not completed. "
-            "Please complete your profile at POST /api/v1/users/profile",
+            "Please complete your profile at POST /api/v1/users/profile"
         )
+        raise ForbiddenError(msg)
     return user

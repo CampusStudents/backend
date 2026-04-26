@@ -57,7 +57,8 @@ class AuthService:
     ) -> User:
         user = await self._get_user_by_email(session, email)
         if not user:
-            raise UserNotFoundError(f"User with email {email} not exists")
+            msg = f"User with email {email} not exists"
+            raise UserNotFoundError(msg)
         return user
 
     @classmethod
@@ -178,7 +179,8 @@ class AuthService:
         async with self.uow as uow:
             user = await self._get_user_by_email_or_raise(uow.session, email)
             if not verify_password(old_password, user.password_hash):
-                raise AuthError("Invalid old password")
+                msg = "Invalid old password"
+                raise AuthError(msg)
             user.password_hash = get_password_hash(new_password)
             # Можно также удалить все сессии пользователя
             await uow.commit()

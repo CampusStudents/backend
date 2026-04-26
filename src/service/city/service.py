@@ -62,4 +62,5 @@ class CityService:
     async def _ensure_name_is_unique(self, session: AsyncSession, name: str) -> None:
         existing_city = await self.repository.get_out(session, {"name": name})
         if existing_city:
-            raise AlreadyExistsError("City already exists")
+            msg = "City already exists"
+            raise AlreadyExistsError(msg)

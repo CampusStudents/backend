@@ -159,9 +159,10 @@ async def verify_account(
     """
     try:
         await service.verify_account(token)
-        return {"message": "Account successfully verified"}
     except (InvalidTokenError, TokenExpiredError):
         raise BadRequestError(detail="Invalid or expired token") # noqa: B904
+    else:
+        return {"message": "Account successfully verified"}
 
 
 @router.post("/resend_verification")
@@ -225,6 +226,6 @@ async def reset_password(
     try:
         await service.reset_password(data.token, data.new_password.get_secret_value())
     except (InvalidTokenError, TokenExpiredError):
-        raise BadRequestError(detail="Invalid or expired token")
+        raise BadRequestError(detail="Invalid or expired token") from None
     return {"message": "Пароль успешно изменен"}
 

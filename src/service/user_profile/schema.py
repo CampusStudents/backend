@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import BaseModel, ConfigDict
 
 from src.service.helpers import NonEmptyStr
 
@@ -23,7 +23,6 @@ class UpdateUserProfileSchema(BaseModel):
     bio: NonEmptyStr | None = None
     city_id: UUID | None = None
     university_id: UUID | None = None
-
 
 
 class UserProfileDTO(UserProfileBaseSchema):
