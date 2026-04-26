@@ -8,7 +8,7 @@ from .base import Base
 from .mixins import TimestampMixin, UUIDPkMixin
 
 if TYPE_CHECKING:
-    from .rbac import Role
+    from .library import TeamRole
     from .user import User
 
 
@@ -18,10 +18,10 @@ class PortfolioItem(UUIDPkMixin, TimestampMixin, Base):
     )
     title: Mapped[str] = mapped_column(String(255))
     description: Mapped[str | None] = mapped_column(Text)
-    role_id: Mapped[uuid.UUID | None] = mapped_column(
-        ForeignKey("roles.id", ondelete="SET NULL")
+    team_role_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("team_roles.id", ondelete="RESTRICT")
     )
     project_link: Mapped[str | None]
 
-    user: Mapped[User] = relationship(lazy="raise")
-    role: Mapped[Role] = relationship(lazy="joined")
+    user: Mapped[User] = relationship()
+    team_role: Mapped[TeamRole] = relationship(lazy="joined")

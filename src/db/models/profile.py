@@ -8,8 +8,7 @@ from .base import Base
 from .mixins import TimestampMixin, UUIDPkMixin
 
 if TYPE_CHECKING:
-    from .city import City
-    from .university import University
+    from .library import City, University
     from .user import User
 
 
@@ -20,13 +19,13 @@ class UserProfile(UUIDPkMixin, TimestampMixin, Base):
     first_name: Mapped[str] = mapped_column(String(100))
     last_name: Mapped[str] = mapped_column(String(100))
     bio: Mapped[str | None] = mapped_column(TEXT)
-    city_id: Mapped[uuid.UUID | None] = mapped_column(
-        ForeignKey("cities.id", ondelete="SET NULL")
+    city_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("cities.id", ondelete="RESTRICT")
     )
-    university_id: Mapped[uuid.UUID | None] = mapped_column(
-        ForeignKey("universities.id", ondelete="SET NULL")
+    university_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("universities.id", ondelete="RESTRICT")
     )
 
-    user: Mapped[User] = relationship(back_populates="profile", lazy="raise")
-    city: Mapped[City | None] = relationship(lazy="joined")
-    university: Mapped[University | None] = relationship(lazy="raise")
+    user: Mapped[User] = relationship(back_populates="profile")
+    city: Mapped[City] = relationship(lazy="joined")
+    university: Mapped[University] = relationship(lazy="joined")

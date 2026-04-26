@@ -8,6 +8,7 @@ from .base import Base
 from .mixins import TimestampMixin, UUIDPkMixin
 
 if TYPE_CHECKING:
+    from .event import Event
     from .user import User
 
 
@@ -19,4 +20,5 @@ class Organization(UUIDPkMixin, TimestampMixin, Base):
     description: Mapped[str | None] = mapped_column(Text)
     contact_email: Mapped[str] = mapped_column(String(255))
 
-    owner: Mapped[User | None] = relationship(lazy="raise")
+    owner: Mapped[User | None] = relationship()
+    events: Mapped[list[Event]] = relationship(back_populates="organizer")

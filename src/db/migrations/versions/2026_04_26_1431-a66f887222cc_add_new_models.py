@@ -1,8 +1,8 @@
-"""Add new models
+"""add new models
 
-Revision ID: acdf6151b3ed
+Revision ID: a66f887222cc
 Revises: 7cbb7a4c2e7a
-Create Date: 2026-04-19 19:09:53.298504
+Create Date: 2026-04-26 14:31:45.618953
 
 """
 
@@ -12,7 +12,7 @@ from alembic import op
 import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
-revision: str = "acdf6151b3ed"
+revision: str = "a66f887222cc"
 down_revision: Union[str, Sequence[str], None] = "7cbb7a4c2e7a"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -34,6 +34,21 @@ def upgrade() -> None:
         sa.Column("updated_at", sa.DateTime(), nullable=True),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_skills")),
         sa.UniqueConstraint("name", name=op.f("uq_skills_name")),
+    )
+    op.create_table(
+        "team_roles",
+        sa.Column("name", sa.String(length=100), nullable=False),
+        sa.Column("description", sa.Text(), nullable=True),
+        sa.Column("id", sa.UUID(), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.Column("updated_at", sa.DateTime(), nullable=True),
+        sa.PrimaryKeyConstraint("id", name=op.f("pk_team_roles")),
+        sa.UniqueConstraint("name", name=op.f("uq_team_roles_name")),
     )
     op.create_table(
         "organizations",
@@ -62,7 +77,7 @@ def upgrade() -> None:
         sa.Column("user_id", sa.UUID(), nullable=False),
         sa.Column("title", sa.String(length=255), nullable=False),
         sa.Column("description", sa.Text(), nullable=True),
-        sa.Column("role_id", sa.UUID(), nullable=True),
+        sa.Column("team_role_id", sa.UUID(), nullable=False),
         sa.Column("project_link", sa.String(), nullable=True),
         sa.Column("id", sa.UUID(), nullable=False),
         sa.Column(
@@ -73,10 +88,10 @@ def upgrade() -> None:
         ),
         sa.Column("updated_at", sa.DateTime(), nullable=True),
         sa.ForeignKeyConstraint(
-            ["role_id"],
-            ["roles.id"],
-            name=op.f("fk_portfolio_items_role_id_roles"),
-            ondelete="SET NULL",
+            ["team_role_id"],
+            ["team_roles.id"],
+            name=op.f("fk_portfolio_items_team_role_id_team_roles"),
+            ondelete="RESTRICT",
         ),
         sa.ForeignKeyConstraint(
             ["user_id"],
@@ -94,7 +109,7 @@ def upgrade() -> None:
             ["skill_id"],
             ["skills.id"],
             name=op.f("fk_user_skills_skill_id_skills"),
-            ondelete="CASCADE",
+            ondelete="RESTRICT",
         ),
         sa.ForeignKeyConstraint(
             ["user_id"],
@@ -109,15 +124,32 @@ def upgrade() -> None:
     op.create_table(
         "events",
         sa.Column("organizer_id", sa.UUID(), nullable=True),
+        sa.Column("city_id", sa.UUID(), nullable=True),
         sa.Column("title", sa.String(length=255), nullable=False),
         sa.Column("description", sa.Text(), nullable=True),
         sa.Column("date_start", sa.DateTime(), nullable=False),
         sa.Column("date_end", sa.DateTime(), nullable=False),
         sa.Column("application_deadline", sa.DateTime(), nullable=True),
-        sa.Column("format", sa.String(), nullable=True),
-        sa.Column("city", sa.String(), nullable=True),
+        sa.Column(
+            "format",
+            sa.Enum("online", "offline", name="event_format"),
+            nullable=True,
+        ),
         sa.Column("registration_link", sa.String(), nullable=True),
-        sa.Column("status", sa.String(), nullable=False),
+        sa.Column(
+            "status",
+            sa.Enum(
+                "draft",
+                "published",
+                "registration_open",
+                "registration_closed",
+                "ongoing",
+                "completed",
+                "cancelled",
+                name="event_status",
+            ),
+            nullable=False,
+        ),
         sa.Column("id", sa.UUID(), nullable=False),
         sa.Column(
             "created_at",
@@ -126,6 +158,12 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.Column("updated_at", sa.DateTime(), nullable=True),
+        sa.ForeignKeyConstraint(
+            ["city_id"],
+            ["cities.id"],
+            name=op.f("fk_events_city_id_cities"),
+            ondelete="RESTRICT",
+        ),
         sa.ForeignKeyConstraint(
             ["organizer_id"],
             ["organizations.id"],
@@ -141,10 +179,35 @@ def upgrade() -> None:
         sa.Column("city_id", sa.UUID(), nullable=True),
         sa.Column("title", sa.String(length=255), nullable=False),
         sa.Column("description", sa.Text(), nullable=True),
-        sa.Column("type", sa.String(), nullable=True),
-        sa.Column("format", sa.String(), nullable=True),
+        sa.Column(
+            "type",
+            sa.Enum(
+                "hackathon",
+                "startup",
+                "study",
+                "commercial",
+                name="project_type",
+            ),
+            nullable=False,
+        ),
+        sa.Column(
+            "format",
+            sa.Enum("online", "offline", "hybrid", name="project_format"),
+            nullable=False,
+        ),
         sa.Column("deadline", sa.DateTime(), nullable=True),
-        sa.Column("status", sa.String(), nullable=False),
+        sa.Column(
+            "status",
+            sa.Enum(
+                "NEW",
+                "SELECTION_COMPLETED",
+                "STARTED",
+                "ENDED",
+                "CANCELED",
+                name="project_status",
+            ),
+            nullable=False,
+        ),
         sa.Column("id", sa.UUID(), nullable=False),
         sa.Column(
             "created_at",
@@ -157,7 +220,7 @@ def upgrade() -> None:
             ["city_id"],
             ["cities.id"],
             name=op.f("fk_projects_city_id_cities"),
-            ondelete="SET NULL",
+            ondelete="RESTRICT",
         ),
         sa.ForeignKeyConstraint(
             ["event_id"],
@@ -176,7 +239,7 @@ def upgrade() -> None:
     op.create_table(
         "project_vacancies",
         sa.Column("project_id", sa.UUID(), nullable=False),
-        sa.Column("role_id", sa.UUID(), nullable=False),
+        sa.Column("team_role_id", sa.UUID(), nullable=False),
         sa.Column("required_count", sa.Integer(), nullable=False),
         sa.Column("description", sa.Text(), nullable=True),
         sa.Column("id", sa.UUID(), nullable=False),
@@ -187,6 +250,12 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.Column("updated_at", sa.DateTime(), nullable=True),
+        sa.CheckConstraint(
+            "required_count > 0",
+            name=op.f(
+                "ck_project_vacancies_ck_project_vacancies_required_count_positive"
+            ),
+        ),
         sa.ForeignKeyConstraint(
             ["project_id"],
             ["projects.id"],
@@ -194,10 +263,10 @@ def upgrade() -> None:
             ondelete="CASCADE",
         ),
         sa.ForeignKeyConstraint(
-            ["role_id"],
-            ["roles.id"],
-            name=op.f("fk_project_vacancies_role_id_roles"),
-            ondelete="CASCADE",
+            ["team_role_id"],
+            ["team_roles.id"],
+            name=op.f("fk_project_vacancies_team_role_id_team_roles"),
+            ondelete="RESTRICT",
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_project_vacancies")),
     )
@@ -205,7 +274,7 @@ def upgrade() -> None:
         "team_members",
         sa.Column("project_id", sa.UUID(), nullable=False),
         sa.Column("user_id", sa.UUID(), nullable=False),
-        sa.Column("role_id", sa.UUID(), nullable=True),
+        sa.Column("team_role_id", sa.UUID(), nullable=True),
         sa.Column("joined_at", sa.DateTime(), nullable=False),
         sa.Column("id", sa.UUID(), nullable=False),
         sa.Column(
@@ -222,10 +291,10 @@ def upgrade() -> None:
             ondelete="CASCADE",
         ),
         sa.ForeignKeyConstraint(
-            ["role_id"],
-            ["roles.id"],
-            name=op.f("fk_team_members_role_id_roles"),
-            ondelete="SET NULL",
+            ["team_role_id"],
+            ["team_roles.id"],
+            name=op.f("fk_team_members_team_role_id_team_roles"),
+            ondelete="RESTRICT",
         ),
         sa.ForeignKeyConstraint(
             ["user_id"],
@@ -234,13 +303,26 @@ def upgrade() -> None:
             ondelete="CASCADE",
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_team_members")),
+        sa.UniqueConstraint(
+            "project_id", "user_id", name="uq_team_members_project_id_user_id"
+        ),
     )
     op.create_table(
         "applications",
         sa.Column("vacancy_id", sa.UUID(), nullable=False),
         sa.Column("applicant_id", sa.UUID(), nullable=False),
         sa.Column("cover_letter", sa.Text(), nullable=True),
-        sa.Column("status", sa.String(), nullable=False),
+        sa.Column(
+            "status",
+            sa.Enum(
+                "pending",
+                "accepted",
+                "rejected",
+                "withdrawn",
+                name="application_status",
+            ),
+            nullable=False,
+        ),
         sa.Column("decided_at", sa.DateTime(), nullable=True),
         sa.Column("id", sa.UUID(), nullable=False),
         sa.Column(
@@ -263,6 +345,11 @@ def upgrade() -> None:
             ondelete="CASCADE",
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_applications")),
+        sa.UniqueConstraint(
+            "vacancy_id",
+            "applicant_id",
+            name="uq_applications_vacancy_id_applicant_id",
+        ),
     )
     op.create_table(
         "project_vacancy_skills",
@@ -272,7 +359,7 @@ def upgrade() -> None:
             ["skill_id"],
             ["skills.id"],
             name=op.f("fk_project_vacancy_skills_skill_id_skills"),
-            ondelete="CASCADE",
+            ondelete="RESTRICT",
         ),
         sa.ForeignKeyConstraint(
             ["vacancy_id"],
@@ -286,12 +373,114 @@ def upgrade() -> None:
             "vacancy_id", "skill_id", name=op.f("pk_project_vacancy_skills")
         ),
     )
+    op.alter_column(
+        "universities", "city_id", existing_type=sa.UUID(), nullable=False
+    )
+    op.drop_constraint(
+        op.f("fk_universities_city_id_cities"),
+        "universities",
+        type_="foreignkey",
+    )
+    op.create_foreign_key(
+        op.f("fk_universities_city_id_cities"),
+        "universities",
+        "cities",
+        ["city_id"],
+        ["id"],
+        ondelete="RESTRICT",
+    )
+    op.alter_column(
+        "user_profiles", "city_id", existing_type=sa.UUID(), nullable=False
+    )
+    op.alter_column(
+        "user_profiles",
+        "university_id",
+        existing_type=sa.UUID(),
+        nullable=False,
+    )
+    op.drop_constraint(
+        op.f("fk_user_profiles_university_id_universities"),
+        "user_profiles",
+        type_="foreignkey",
+    )
+    op.drop_constraint(
+        op.f("fk_user_profiles_city_id_cities"),
+        "user_profiles",
+        type_="foreignkey",
+    )
+    op.create_foreign_key(
+        op.f("fk_user_profiles_university_id_universities"),
+        "user_profiles",
+        "universities",
+        ["university_id"],
+        ["id"],
+        ondelete="RESTRICT",
+    )
+    op.create_foreign_key(
+        op.f("fk_user_profiles_city_id_cities"),
+        "user_profiles",
+        "cities",
+        ["city_id"],
+        ["id"],
+        ondelete="RESTRICT",
+    )
     # ### end Alembic commands ###
 
 
 def downgrade() -> None:
     """Downgrade schema."""
     # ### commands auto generated by Alembic - please adjust! ###
+    op.drop_constraint(
+        op.f("fk_user_profiles_city_id_cities"),
+        "user_profiles",
+        type_="foreignkey",
+    )
+    op.drop_constraint(
+        op.f("fk_user_profiles_university_id_universities"),
+        "user_profiles",
+        type_="foreignkey",
+    )
+    op.create_foreign_key(
+        op.f("fk_user_profiles_city_id_cities"),
+        "user_profiles",
+        "cities",
+        ["city_id"],
+        ["id"],
+        ondelete="SET NULL",
+    )
+    op.create_foreign_key(
+        op.f("fk_user_profiles_university_id_universities"),
+        "user_profiles",
+        "universities",
+        ["university_id"],
+        ["id"],
+        ondelete="SET NULL",
+    )
+    op.alter_column(
+        "user_profiles",
+        "university_id",
+        existing_type=sa.UUID(),
+        nullable=True,
+    )
+    op.alter_column(
+        "user_profiles", "city_id", existing_type=sa.UUID(), nullable=True
+    )
+    op.drop_constraint(
+        op.f("fk_universities_city_id_cities"),
+        "universities",
+        type_="foreignkey",
+    )
+    op.create_foreign_key(
+        op.f("fk_universities_city_id_cities"),
+        "universities",
+        "cities",
+        ["city_id"],
+        ["id"],
+        ondelete="SET NULL",
+    )
+    op.alter_column(
+        "universities", "city_id", existing_type=sa.UUID(), nullable=True
+    )
     op.drop_table("project_vacancy_skills")
     op.drop_table("applications")
     op.drop_table("team_members")
@@ -301,5 +490,6 @@ def downgrade() -> None:
     op.drop_table("user_skills")
     op.drop_table("portfolio_items")
     op.drop_table("organizations")
+    op.drop_table("team_roles")
     op.drop_table("skills")
     # ### end Alembic commands ###

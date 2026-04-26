@@ -5,14 +5,15 @@ from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
+from .library import user_skills
 from .mixins import TimestampMixin, UUIDPkMixin
 from .rbac import user_roles
-from .skill import user_skills
 
 if TYPE_CHECKING:
+    from .application import Application
+    from .library import Skill
     from .profile import UserProfile
     from .rbac import Role
-    from .skill import Skill
 
 
 class User(UUIDPkMixin, TimestampMixin, Base):
@@ -28,17 +29,18 @@ class User(UUIDPkMixin, TimestampMixin, Base):
         back_populates="user",
         cascade="all, delete-orphan",
         passive_deletes=True,
-        lazy="raise",
     )
 
     roles: Mapped[list[Role]] = relationship(
         secondary=user_roles,
         back_populates="users",
-        lazy="selectin",
     )
 
     skills: Mapped[list[Skill]] = relationship(
         secondary=user_skills,
         back_populates="users",
-        lazy="selectin",
+    )
+
+    applications: Mapped[list[Application]] = relationship(
+        back_populates="applicant",
     )
