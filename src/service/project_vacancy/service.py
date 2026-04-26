@@ -124,8 +124,9 @@ class ProjectVacancyService:
     ) -> None:
         async with self.uow as uow:
             project = await self._ensure_project_exists(uow.session, project_id)
+            vacancy = await self._get_project_vacancy_or_raise(uow.session, project_id, vacancy_id)
             self._ensure_owner_or_admin(project.owner_id, user)
-            await self.repository.delete_by_id(uow.session, vacancy_id)
+            await self.repository.delete_by_id(uow.session, vacancy.id)
             await uow.commit()
 
     async def _ensure_project_exists(self, session: AsyncSession, project_id: UUID):
