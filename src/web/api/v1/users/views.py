@@ -5,7 +5,7 @@ from fastapi import APIRouter, Security
 from src.core.config import settings
 from src.core.security.scopes import Scope
 from src.service.user.schema import UpdateUserRolesSchema, UserDTO
-from src.web.api.dependencies import get_current_verified_user, UserServiceDep
+from src.web.api.dependencies import UserServiceDep, get_current_verified_user
 
 router = APIRouter(prefix=settings.api.v1.users)
 

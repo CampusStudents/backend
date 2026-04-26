@@ -1,5 +1,4 @@
 import time
-import uuid
 
 
 def get_time(seconds_precision: bool = True) -> float:

@@ -1,14 +1,13 @@
 from uuid import UUID
 
-from src.core.config import settings
-from src.core.exceptions.service.base import BadRequestError
+from src.core.exceptions.service.base import AlreadyExistsError, BadRequestError
 from src.core.exceptions.service.user import UserNotFoundError
+from src.core.security.utils import get_password_hash
 from src.db.repository.role import RoleRepository
 from src.db.repository.user import UserRepository
 from src.db.unit_of_work import UnitOfWork
+
 from .schema import RegisterSchema, UpdateUserRolesSchema, UserDTO
-from src.core.exceptions.service.base import AlreadyExistsError
-from src.core.security.utils import get_password_hash
 
 
 class UserService:
@@ -24,18 +23,19 @@ class UserService:
 
     async def get_by_email(self, email: str):
         async with self.uow as uow:
-            user = await self.repository.get_by_email_with_roles(uow.session, email)
+            user = await self.repository.get_out(uow.session, {"email": email})
             if user:
                 return UserDTO.model_validate(user)
             return None
 
     async def register(self, data: RegisterSchema):
         async with self.uow as uow:
-            existing_user = await self.repository.get_by_filters(
+            existing_user = await self.repository.get_out(
                 uow.session, {"email": data.email}
             )
             if existing_user:
-                raise AlreadyExistsError("Email already exists")
+                msg = "Email already exists"
+                raise AlreadyExistsError(msg)
             user = await self.repository.create(
                 uow.session,
                 {
@@ -46,31 +46,38 @@ class UserService:
                 },
             )
 
-            roles = await self.role_repository.get_by_names(
-                uow.session, ["public", "user"]
+            roles = await self.role_repository.get_multi(
+                uow.session,
+                {"name": ["public", "user"]},
             )
-            if len(roles) != 2:
-                raise BadRequestError("User roles is not configured")
+            if len(roles) != 2:  # noqa: PLR2004
+                msg = "User roles is not configured"
+                raise BadRequestError(msg)
 
             await self.repository.assign_roles(
                 uow.session, user_id=user.id, role_ids=[role.id for role in roles]
             )
             await uow.commit()
-            user_with_roles = await self.repository.get_by_id_with_roles(
-                uow.session, user.id
+            user_with_roles = await self.repository.get_out(
+                uow.session,
+                {"id": user.id},
             )
-            print(user_with_roles.roles)
             return UserDTO.model_validate(user_with_roles or user)
 
     async def update_roles(self, user_id: UUID, data: UpdateUserRolesSchema) -> UserDTO:
         async with self.uow as uow:
-            user = await self.repository.get_by_id_with_roles(uow.session, user_id)
+            user = await self.repository.get_out(uow.session, {"id": user_id})
             if not user:
-                raise UserNotFoundError("User not found")
+                msg = "User not found"
+                raise UserNotFoundError(msg)
 
-            roles = await self.role_repository.get_by_names(uow.session, data.roles)
+            roles = await self.role_repository.get_multi(
+                uow.session,
+                {"name": data.roles},
+            )
             if len(roles) != len(data.roles):
-                raise BadRequestError("One or more roles not found")
+                msg = "One or more roles not found"
+                raise BadRequestError(msg)
 
             await self.repository.replace_roles(
                 uow.session, user_id=user.id, role_ids=[role.id for role in roles]

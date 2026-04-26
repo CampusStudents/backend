@@ -1,6 +1,7 @@
 import logging
 from pathlib import Path
 from typing import Literal
+
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.engine import URL
@@ -13,7 +14,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 
 def configure_logging(
-        level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO",
+    level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO",
 ) -> None:
     """Configure base logging for the application."""
     logging.basicConfig(
@@ -32,6 +33,9 @@ class ApiV1Prefix(BaseModel):
     prefix: str = "/v1"
     users: str = "/users"
     auth: str = "/auth"
+    cities: str = "/cities"
+    universities: str = "/universities"
+    projects: str = "/projects"
 
 
 class ApiPrefix(BaseModel):
@@ -51,7 +55,14 @@ class AuthConfig(BaseModel):
 
 
 class RBACConfig(BaseModel):
-    initial_subjects: list[str] = ["users"]
+    initial_subjects: list[str] = [
+        "users",
+        "cities",
+        "universities",
+        "user_profiles",
+        "projects",
+        "project_vacancies",
+    ]
     initial_actions: list[str] = [
         "detail",
         "list",
@@ -75,6 +86,23 @@ class RBACConfig(BaseModel):
             "auth:change_password",
             "auth:quit_all",
             "auth:resend_verification",
+            "cities:list",
+            "cities:detail",
+            "universities:list",
+            "universities:detail",
+            "user_profiles:detail",
+            "user_profiles:create",
+            "user_profiles:update",
+            "projects:list",
+            "projects:detail",
+            "projects:create",
+            "projects:update",
+            "projects:delete",
+            "project_vacancies:list",
+            "project_vacancies:detail",
+            "project_vacancies:create",
+            "project_vacancies:update",
+            "project_vacancies:delete",
         ],
     }
     admin_email: str = "admin@example.com"

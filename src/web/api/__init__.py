@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
-from .v1 import router as v1_router
 from .monitoring import router as monitoring_router
+from .v1 import router as v1_router
 
 api_router = APIRouter()
 
