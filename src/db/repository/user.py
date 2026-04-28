@@ -1,4 +1,4 @@
-from sqlalchemy import delete, select
+from sqlalchemy import Select, delete
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -11,26 +11,11 @@ from src.db.repository.base import SQLAlchemyRepository
 class UserRepository(SQLAlchemyRepository):
     model = User
 
-    async def get_by_email_with_roles(
-            self, session: AsyncSession, email: str
-    ) -> User | None:
-        stmt = (
-            select(User)
-            .options(selectinload(User.roles).selectinload(Role.permissions))
-            .where(User.email == email)
-        )
-        result = await session.execute(stmt)
-        return result.scalar_one_or_none()
-
-    async def get_by_id_with_roles(self, session: AsyncSession, user_id) -> User | None:
-        stmt = (
-            select(User)
-            .options(selectinload(User.roles))
-            .where(User.id == user_id)
-            .execution_options(populate_existing=True)
-        )
-        result = await session.execute(stmt)
-        return result.scalar_one_or_none()
+    def apply_related_load(
+        self,
+        query: Select[tuple[User]],
+    ) -> Select[tuple[User]]:
+        return query.options(selectinload(User.roles).selectinload(Role.permissions))
 
     async def assign_roles(
             self, session: AsyncSession, user_id, role_ids: list

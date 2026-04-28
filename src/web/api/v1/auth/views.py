@@ -1,7 +1,7 @@
 import logging
 from datetime import timedelta
 
-from fastapi import APIRouter, Response, Depends, BackgroundTasks, Security
+from fastapi import APIRouter, BackgroundTasks, Depends, Response, Security
 from pydantic import BaseModel, EmailStr
 
 from src.core.config import settings
@@ -9,22 +9,22 @@ from src.core.exceptions.service.auth import InvalidTokenError, TokenExpiredErro
 from src.core.exceptions.service.base import BadRequestError
 from src.core.security.scopes import Scope
 from src.core.security.send_email import (
-    send_verification_email,
     send_password_reset_email,
+    send_verification_email,
 )
 from src.core.security.token import AccessToken
 from src.service.auth.schema import (
-    LoginSchema,
     ChangePasswordSchema,
+    LoginSchema,
     ResetPasswordSchema,
 )
 from src.service.user.schema import RegisterSchema, UserDTO
 from src.web.api.dependencies import (
     AuthServiceDep,
     UserServiceDep,
-    get_token_for_refresh,
     get_current_active_user,
     get_current_verified_user,
+    get_token_for_refresh,
 )
 
 router = APIRouter()
@@ -100,11 +100,13 @@ async def refresh_jwt(
     return AccessToken(access_token=new_tokens.access_token)
 
 
-@router.post("/logout")
+@router.post(
+    "/logout",
+    dependencies=[Security(get_current_verified_user, scopes=[Scope.AUTH_LOGOUT])],
+)
 async def logout(
         response: Response,
         auth_service: AuthServiceDep,
-        _user: UserDTO = Security(get_current_verified_user, scopes=[Scope.AUTH_LOGOUT]),
         token: str = Depends(get_token_for_refresh),
 ) -> None:
     """
@@ -159,9 +161,10 @@ async def verify_account(
     """
     try:
         await service.verify_account(token)
-        return {"message": "Account successfully verified"}
     except (InvalidTokenError, TokenExpiredError):
-        raise BadRequestError(detail="Invalid or expired token")
+        raise BadRequestError(detail="Invalid or expired token") # noqa: B904
+    else:
+        return {"message": "Account successfully verified"}
 
 
 @router.post("/resend_verification")
@@ -224,6 +227,7 @@ async def reset_password(
     """
     try:
         await service.reset_password(data.token, data.new_password.get_secret_value())
-        return {"message": "Пароль успешно изменен"}
     except (InvalidTokenError, TokenExpiredError):
-        raise BadRequestError(detail="Invalid or expired token")
+        raise BadRequestError(detail="Invalid or expired token") from None
+    return {"message": "Пароль успешно изменен"}
+

@@ -1,12 +1,12 @@
 from datetime import datetime
 from typing import Any
-from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, SecretStr, field_validator
+from pydantic import BaseModel, EmailStr, Field, SecretStr, field_validator
+
+from src.service.helpers import EntityDTO, NonEmptyStr
 
 
-class UserDTO(BaseModel):
-    id: UUID
+class UserDTO(EntityDTO):
     email: EmailStr
     roles: list[str] = Field(default_factory=list)
     scopes: set[str] = Field(default_factory=set)
@@ -14,8 +14,6 @@ class UserDTO(BaseModel):
     is_verified: bool
     is_profile_completed: bool
     last_login_at: datetime | None = None
-
-    model_config = ConfigDict(from_attributes=True)
 
     @field_validator("roles", mode="before")
     @classmethod
@@ -35,9 +33,11 @@ class RegisterSchema(BaseModel):
     @classmethod
     def validate_password(cls, value: Any) -> Any:
         if not isinstance(value, str):
-            raise ValueError("Password must be a string")
-        if len(value) < 8:
-            raise ValueError("Password must contain at least 8 characters")
+            msg = "Password must be a string"
+            raise TypeError(msg)
+        if len(value) < 8:  # noqa: PLR2004
+            msg = "Password must contain at least 8 characters"
+            raise ValueError(msg)
         # Длины пароля пока хватит
         # if not re.search(r"[A-Z]", value):
         #     raise ValueError("Password must contain at least one uppercase letter")
@@ -51,16 +51,15 @@ class RegisterSchema(BaseModel):
 
 
 class UpdateUserRolesSchema(BaseModel):
-    roles: list[str]
+    roles: list[NonEmptyStr]
 
     @field_validator("roles")
     @classmethod
     def validate_roles(cls, value: list[str]) -> list[str]:
         if not value:
-            raise ValueError("Roles list cannot be empty")
-        normalized = [role.strip() for role in value if role.strip()]
-        if len(normalized) != len(value):
-            raise ValueError("Roles must be non-empty strings")
-        if len(set(normalized)) != len(normalized):
-            raise ValueError("Roles must be unique")
-        return normalized
+            msg = "Roles list cannot be empty"
+            raise ValueError(msg)
+        if len(set(value)) != len(value):
+            msg = "Roles must be unique"
+            raise ValueError(msg)
+        return value

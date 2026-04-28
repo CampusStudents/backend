@@ -1,12 +1,13 @@
 import logging
-from email.message import EmailMessage
 from datetime import timedelta
+from email.message import EmailMessage
 
 import aiosmtplib
 
-from .utils import encode_jwt, decode_jwt
-from src.core.exceptions.service.auth import InvalidTokenError, TokenExpiredError
 from src.core.config import settings
+from src.core.exceptions.service.auth import InvalidTokenError, TokenExpiredError
+
+from .utils import decode_jwt, encode_jwt
 
 logger = logging.getLogger(__name__)
 

@@ -1,33 +1,34 @@
 from datetime import datetime, timedelta
-from uuid import uuid4, UUID
+from uuid import UUID, uuid4
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.config import settings
 from src.core.exceptions.service.auth import (
-    NotAuthenticatedError,
     InvalidTokenError,
+    NotAuthenticatedError,
 )
 from src.core.exceptions.service.base import AuthError
 from src.core.exceptions.service.user import UserNotFoundError
 from src.core.security.rbac import get_user_scopes
+from src.core.security.send_email import (
+    verify_password_reset_token,
+    verify_verification_token,
+)
 from src.core.security.token import TokenPair
 from src.core.security.utils import (
-    verify_password,
+    decode_jwt,
     encode_jwt,
     get_password_hash,
-    decode_jwt,
+    verify_password,
 )
 from src.db.models import User
 from src.db.repository.refresh_session import RefreshSessionRepository
 from src.db.repository.user import UserRepository
 from src.db.unit_of_work import UnitOfWork
-from .schema import LoginSchema
 from src.service.user.schema import UserDTO
-from src.core.security.send_email import (
-    verify_verification_token,
-    verify_password_reset_token,
-)
+
+from .schema import LoginSchema
 
 
 class AuthService:
@@ -44,21 +45,20 @@ class AuthService:
     async def _get_user_by_email(
             self, session: AsyncSession, email: str
     ) -> User | None:
-        return await self.user_repository.get_by_filters(
-            session, {"email": email}, one=True
-        )
+        return await self.user_repository.get_out(session, {"email": email})
 
     async def _get_user_by_email_with_roles(
             self, session: AsyncSession, email: str
     ) -> User | None:
-        return await self.user_repository.get_by_email_with_roles(session, email)
+        return await self.user_repository.get_out(session, {"email": email})
 
     async def _get_user_by_email_or_raise(
             self, session: AsyncSession, email: str
     ) -> User:
         user = await self._get_user_by_email(session, email)
         if not user:
-            raise UserNotFoundError(f"User with email {email} not exists")
+            msg = f"User with email {email} not exists"
+            raise UserNotFoundError(msg)
         return user
 
     @classmethod
@@ -127,7 +127,7 @@ class AuthService:
             if not jti:
                 raise InvalidTokenError
 
-            token_obj = await self.session_repository.get_by_filters(
+            token_obj = await self.session_repository.get_out(
                 uow.session, {"refresh_jti": jti}
             )
             if not token_obj:
@@ -179,7 +179,8 @@ class AuthService:
         async with self.uow as uow:
             user = await self._get_user_by_email_or_raise(uow.session, email)
             if not verify_password(old_password, user.password_hash):
-                raise AuthError("Invalid old password")
+                msg = "Invalid old password"
+                raise AuthError(msg)
             user.password_hash = get_password_hash(new_password)
             # Можно также удалить все сессии пользователя
             await uow.commit()
@@ -187,7 +188,7 @@ class AuthService:
     async def logout_all(self, user_id: UUID):
         async with self.uow as uow:
             await self.session_repository.delete_by_user_id(uow.session, user_id)
-            user = await self.user_repository.get_by_id(uow.session, user_id)
+            user = await self.user_repository.get(uow.session, {"id": user_id})
             if user:
                 user.token_version += 1
             await uow.commit()
