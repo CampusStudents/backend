@@ -1,9 +1,8 @@
-from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, Field, field_validator
 
-from src.service.helpers import ShortDTO
+from src.service.helpers import EntityDTO, ShortDTO
 
 SKILL_IDS_UNIQUE_ERROR = "Skill ids must be unique"
 
@@ -56,11 +55,6 @@ class UpdateProjectVacancySchema(BaseModel):
         return value
 
 
-class ProjectVacancyDTO(ProjectVacancyBaseSchema):
-    id: UUID
+class ProjectVacancyDTO(ProjectVacancyBaseSchema, EntityDTO):
     project_id: UUID
     skills: list[ShortDTO]
-    created_at: datetime
-    updated_at: datetime | None
-
-    model_config = ConfigDict(from_attributes=True)

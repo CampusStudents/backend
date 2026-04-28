@@ -25,19 +25,23 @@ from src.web.api.dependencies import (
 router = APIRouter(prefix=settings.api.v1.projects)
 
 
-@router.get("/")
+@router.get(
+    "/",
+    dependencies=[Security(get_current_active_user, scopes=[Scope.PROJECTS_LIST])],
+)
 async def get_projects(
     service: ProjectServiceDep,
-    _: UserDTO = Security(get_current_active_user, scopes=[Scope.PROJECTS_LIST]),
 ) -> list[ProjectDTO]:
     return await service.get_all()
 
 
-@router.get("/{project_id}")
+@router.get(
+    "/{project_id}",
+    dependencies=[Security(get_current_active_user, scopes=[Scope.PROJECTS_DETAIL])],
+)
 async def get_project(
     project_id: UUID,
     service: ProjectServiceDep,
-    _: UserDTO = Security(get_current_active_user, scopes=[Scope.PROJECTS_DETAIL]),
 ) -> ProjectDTO:
     return await service.get_by_id(project_id)
 
@@ -79,27 +83,29 @@ async def delete_project(
     await service.delete(project_id, user)
 
 
-@router.get("/{project_id}/vacancies")
+@router.get(
+    "/{project_id}/vacancies",
+    dependencies=[
+        Security(get_current_active_user, scopes=[Scope.PROJECT_VACANCIES_LIST]),
+    ],
+)
 async def get_project_vacancies(
     project_id: UUID,
     service: ProjectVacancyServiceDep,
-    _: UserDTO = Security(
-        get_current_active_user,
-        scopes=[Scope.PROJECT_VACANCIES_LIST],
-    ),
 ) -> list[ProjectVacancyDTO]:
     return await service.get_by_project_id(project_id)
 
 
-@router.get("/{project_id}/vacancies/{vacancy_id}")
+@router.get(
+    "/{project_id}/vacancies/{vacancy_id}",
+    dependencies=[
+        Security(get_current_active_user, scopes=[Scope.PROJECT_VACANCIES_DETAIL]),
+    ],
+)
 async def get_project_vacancy(
     project_id: UUID,
     vacancy_id: UUID,
     service: ProjectVacancyServiceDep,
-    _: UserDTO = Security(
-        get_current_active_user,
-        scopes=[Scope.PROJECT_VACANCIES_DETAIL],
-    ),
 ) -> ProjectVacancyDTO:
     return await service.get_by_id(project_id, vacancy_id)
 

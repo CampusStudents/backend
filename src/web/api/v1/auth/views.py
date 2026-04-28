@@ -100,11 +100,13 @@ async def refresh_jwt(
     return AccessToken(access_token=new_tokens.access_token)
 
 
-@router.post("/logout")
+@router.post(
+    "/logout",
+    dependencies=[Security(get_current_verified_user, scopes=[Scope.AUTH_LOGOUT])],
+)
 async def logout(
         response: Response,
         auth_service: AuthServiceDep,
-        _user: UserDTO = Security(get_current_verified_user, scopes=[Scope.AUTH_LOGOUT]),
         token: str = Depends(get_token_for_refresh),
 ) -> None:
     """

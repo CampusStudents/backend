@@ -1,8 +1,8 @@
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel
 
-from src.service.helpers import NonEmptyStr
+from src.service.helpers import EntityDTO, NonEmptyStr
 
 
 class UserProfileBaseSchema(BaseModel):
@@ -25,8 +25,5 @@ class UpdateUserProfileSchema(BaseModel):
     university_id: UUID | None = None
 
 
-class UserProfileDTO(UserProfileBaseSchema):
-    id: UUID
+class UserProfileDTO(UserProfileBaseSchema, EntityDTO):
     user_id: UUID
-
-    model_config = ConfigDict(from_attributes=True)

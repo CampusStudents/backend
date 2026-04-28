@@ -2,8 +2,7 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.exceptions.service.base import BadRequestError
-from src.core.exceptions.service.base import NoAccessError
+from src.core.exceptions.service.base import BadRequestError, NoAccessError
 from src.core.exceptions.service.city import CityNotFoundError
 from src.core.exceptions.service.project import ProjectNotFoundError
 from src.db.repository.city import CityRepository

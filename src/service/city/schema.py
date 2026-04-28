@@ -1,8 +1,6 @@
-from uuid import UUID
+from pydantic import BaseModel
 
-from pydantic import BaseModel, ConfigDict
-
-from src.service.helpers import NonEmptyStr
+from src.service.helpers import EntityDTO, NonEmptyStr
 
 
 class CityBaseSchema(BaseModel):
@@ -17,7 +15,5 @@ class UpdateCitySchema(BaseModel):
     name: NonEmptyStr | None = None
 
 
-class CityDTO(CityBaseSchema):
-    id: UUID
-
-    model_config = ConfigDict(from_attributes=True)
+class CityDTO(CityBaseSchema, EntityDTO):
+    pass

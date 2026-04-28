@@ -1,7 +1,8 @@
+from datetime import datetime
 from typing import Annotated
 from uuid import UUID
 
-from pydantic import BaseModel, StringConstraints
+from pydantic import BaseModel, ConfigDict, StringConstraints
 
 NonEmptyStr = Annotated[
     str,
@@ -12,3 +13,11 @@ NonEmptyStr = Annotated[
 class ShortDTO(BaseModel):
     id: UUID
     name: str
+
+
+class EntityDTO(BaseModel):
+    id: UUID
+    created_at: datetime
+    updated_at: datetime | None
+
+    model_config = ConfigDict(from_attributes=True)

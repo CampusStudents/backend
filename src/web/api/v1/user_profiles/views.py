@@ -53,13 +53,14 @@ async def update_my_profile(
     return await service.update(current_user.id, data)
 
 
-@router.get("/{user_id}/profile")
+@router.get(
+    "/{user_id}/profile",
+    dependencies=[
+        Security(get_current_verified_user, scopes=[Scope.USER_PROFILES_DETAIL_ANY]),
+    ],
+)
 async def get_user_profile(
     user_id: UUID,
     service: UserProfileServiceDep,
-    _: UserDTO = Security(
-        get_current_verified_user,
-        scopes=[Scope.USER_PROFILES_DETAIL_ANY],
-    ),
 ) -> UserProfileDTO:
     return await service.get_by_user_id(user_id)

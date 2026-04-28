@@ -2,10 +2,10 @@ from datetime import datetime
 from typing import Annotated
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, StringConstraints, field_validator
+from pydantic import BaseModel, StringConstraints, field_validator
 
 from src.db.choices import ProjectFormat, ProjectStatus, ProjectType
-from src.service.helpers import NonEmptyStr
+from src.service.helpers import EntityDTO, NonEmptyStr
 
 INVALID_INITIAL_STATUS_ERROR = "Project cannot be created as ended or canceled"
 
@@ -60,10 +60,5 @@ class UpdateProjectSchema(BaseModel):
         return normalized or None
 
 
-class ProjectDTO(ProjectBaseSchema):
-    id: UUID
+class ProjectDTO(ProjectBaseSchema, EntityDTO):
     owner_id: UUID | None
-    created_at: datetime
-    updated_at: datetime | None
-
-    model_config = ConfigDict(from_attributes=True)
