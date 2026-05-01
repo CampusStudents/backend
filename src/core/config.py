@@ -1,4 +1,5 @@
 import logging
+import multiprocessing
 from pathlib import Path
 from typing import Literal
 
@@ -27,6 +28,25 @@ def configure_logging(
 class RunConfig(BaseModel):
     host: str = "localhost"
     port: int = 8000
+
+
+class GunicornConfig(BaseModel):
+    host: str = "0.0.0.0"
+    port: int = 8000
+    workers: int = multiprocessing.cpu_count() * 2 + 1
+    worker_class: str = "uvicorn.workers.UvicornWorker"
+    worker_connections: int = 1000
+    keepalive: int = 5
+    max_requests: int = 1000
+    max_requests_jitter: int = 50
+    timeout: int = 30
+    graceful_timeout: int = 30
+    reload: bool = False
+    preload_app: bool = True
+    access_log_format: str = (
+        '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s '
+        '"%(f)s" "%(a)s" %(D)s'
+    )
 
 
 class ApiV1Prefix(BaseModel):
@@ -168,6 +188,7 @@ class Settings(BaseSettings):
         env_prefix="APP__",
     )
     run: RunConfig = RunConfig()
+    gunicorn: GunicornConfig = GunicornConfig()
     api: ApiPrefix = ApiPrefix()
     auth: AuthConfig = AuthConfig()
     rbac: RBACConfig

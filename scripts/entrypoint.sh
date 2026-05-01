@@ -3,4 +3,4 @@ set -e
 
 ./scripts/run_migrations.sh
 
-exec uv run -m src.main
+exec gunicorn src.main:main_app -c gunicorn_config.py
