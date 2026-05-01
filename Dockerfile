@@ -27,6 +27,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 COPY src ./src
 COPY scripts ./scripts
+COPY templates ./templates
 COPY alembic.ini ./alembic.ini
 
 # Sync the project
