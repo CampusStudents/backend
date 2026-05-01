@@ -117,6 +117,17 @@ class EmailConfig(BaseModel):
     from_email: str = "campus@mail.ru"
 
 
+class RateLimitConfig(BaseModel):
+    auth_login: str = "5/minute"
+    auth_register: str = "3/minute"
+    auth_refresh: str = "30/minute"
+    auth_verify: str = "10/minute"
+    auth_resend_verification: str = "3/hour"
+    auth_forgot_password: str = "3/hour"
+    auth_reset_password: str = "5/hour"
+    auth_change_password: str = "5/hour"
+
+
 class DatabaseConfig(BaseModel):
     drivername: str = "postgresql+asyncpg"
     user: str
@@ -161,6 +172,7 @@ class Settings(BaseSettings):
     auth: AuthConfig = AuthConfig()
     rbac: RBACConfig
     email: EmailConfig = EmailConfig()
+    rate_limit: RateLimitConfig = RateLimitConfig()
     db: DatabaseConfig
     app_url: str = "127.0.0.1:8000"
 
