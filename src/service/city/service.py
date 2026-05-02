@@ -7,7 +7,7 @@ from src.core.exceptions.service.city import CityNotFoundError
 from src.db.repository.city import CityRepository
 from src.db.unit_of_work import UnitOfWork
 
-from .schema import CityDTO, CreateCitySchema, UpdateCitySchema
+from .schema import CityDTO, CityFilter, CreateCitySchema, UpdateCitySchema
 
 
 class CityService:
@@ -15,9 +15,12 @@ class CityService:
         self.uow = uow
         self.repository = repository
 
-    async def get_all(self) -> list[CityDTO]:
+    async def get_all(self, filters: CityFilter) -> list[CityDTO]:
         async with self.uow as uow:
-            cities = await self.repository.get_multi(uow.session)
+            cities = await self.repository.get_multi(
+                uow.session,
+                filters.to_repository_filters(),
+            )
             return [CityDTO.model_validate(city) for city in cities]
 
     async def get_by_id(self, city_id: UUID) -> CityDTO:
