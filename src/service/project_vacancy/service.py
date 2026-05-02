@@ -173,7 +173,7 @@ class ProjectVacancyService:
         session: AsyncSession,
         skill_ids: list[UUID],
     ) -> None:
-        skills = await self.skill_repository.get_multi(session, {"id": skill_ids})
+        skills = await self.skill_repository.get_multi(session, {"id__in": skill_ids})
         if len(skills) != len(skill_ids):
             raise SkillNotFoundError()
 
