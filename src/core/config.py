@@ -54,6 +54,8 @@ class ApiV1Prefix(BaseModel):
     users: str = "/users"
     auth: str = "/auth"
     cities: str = "/cities"
+    skills: str = "/skills"
+    team_roles: str = "/team-roles"
     universities: str = "/universities"
     projects: str = "/projects"
 
@@ -78,6 +80,8 @@ class RBACConfig(BaseModel):
     initial_subjects: list[str] = [
         "users",
         "cities",
+        "skills",
+        "team_roles",
         "universities",
         "user_profiles",
         "projects",
