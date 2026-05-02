@@ -35,6 +35,4 @@ COPY gunicorn_config.py ./gunicorn_config.py
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev
 
-RUN chmod +x scripts/*.sh
-
-ENTRYPOINT ["./scripts/entrypoint.sh"]
+CMD ["gunicorn", "src.main:main_app", "-c", "gunicorn_config.py"]
