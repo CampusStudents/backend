@@ -2,9 +2,10 @@ from datetime import datetime
 from typing import Annotated
 from uuid import UUID
 
-from pydantic import BaseModel, StringConstraints, field_validator
+from pydantic import BaseModel, Field, StringConstraints, field_validator
 
 from src.db.choices import ProjectFormat, ProjectStatus, ProjectType
+from src.service.filters import BaseFilter
 from src.service.helpers import EntityDTO, NonEmptyStr
 
 INVALID_INITIAL_STATUS_ERROR = "Project cannot be created as ended or canceled"
@@ -58,6 +59,14 @@ class UpdateProjectSchema(BaseModel):
             return None
         normalized = value.strip()
         return normalized or None
+
+
+class ProjectFilter(BaseFilter):
+    title__like: str | None = None
+    type__in: list[ProjectType] | None = Field(default=None, alias="type")
+    format__in: list[ProjectFormat] | None = Field(default=None, alias="format")
+    status__in: list[ProjectStatus] | None = Field(default=None, alias="status")
+    city_id__in: list[UUID] | None = Field(default=None, alias="city_id")
 
 
 class ProjectDTO(ProjectBaseSchema, EntityDTO):

@@ -1,17 +1,20 @@
+from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Security, status
+from fastapi import APIRouter, Query, Security, status
 
 from src.core.config import settings
 from src.core.security.scopes import Scope
 from src.service.project.schema import (
     CreateProjectSchema,
     ProjectDTO,
+    ProjectFilter,
     UpdateProjectSchema,
 )
 from src.service.project_vacancy.schema import (
     CreateProjectVacancySchema,
     ProjectVacancyDTO,
+    ProjectVacancyFilter,
     UpdateProjectVacancySchema,
 )
 from src.service.user.schema import UserDTO
@@ -31,8 +34,9 @@ router = APIRouter(prefix=settings.api.v1.projects)
 )
 async def get_projects(
     service: ProjectServiceDep,
+    filters: Annotated[ProjectFilter, Query()],
 ) -> list[ProjectDTO]:
-    return await service.get_all()
+    return await service.get_all(filters)
 
 
 @router.get(
@@ -92,8 +96,9 @@ async def delete_project(
 async def get_project_vacancies(
     project_id: UUID,
     service: ProjectVacancyServiceDep,
+    filters: Annotated[ProjectVacancyFilter, Query()],
 ) -> list[ProjectVacancyDTO]:
-    return await service.get_by_project_id(project_id)
+    return await service.get_by_project_id(project_id, filters)
 
 
 @router.get(

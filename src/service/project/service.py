@@ -10,7 +10,7 @@ from src.db.repository.project import ProjectRepository
 from src.db.unit_of_work import UnitOfWork
 from src.service.user.schema import UserDTO
 
-from .schema import CreateProjectSchema, ProjectDTO, UpdateProjectSchema
+from .schema import CreateProjectSchema, ProjectDTO, ProjectFilter, UpdateProjectSchema
 
 
 class ProjectService:
@@ -24,9 +24,12 @@ class ProjectService:
         self.repository = repository
         self.city_repository = city_repository
 
-    async def get_all(self) -> list[ProjectDTO]:
+    async def get_all(self, filters: ProjectFilter) -> list[ProjectDTO]:
         async with self.uow as uow:
-            projects = await self.repository.get_multi_out(uow.session)
+            projects = await self.repository.get_multi_out(
+                uow.session,
+                filters.to_repository_filters(),
+            )
             return [ProjectDTO.model_validate(project) for project in projects]
 
     async def get_by_id(self, project_id: UUID) -> ProjectDTO:
