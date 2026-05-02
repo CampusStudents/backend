@@ -16,7 +16,10 @@ from src.web.api.dependencies import SkillServiceDep, get_current_active_user
 router = APIRouter(prefix=settings.api.v1.skills)
 
 
-@router.get("/")
+@router.get(
+    "/",
+    dependencies=[Security(get_current_active_user, scopes=[Scope.SKILLS_LIST])],
+)
 async def get_skills(
     service: SkillServiceDep,
     filters: Annotated[SkillFilter, Query()],
@@ -24,7 +27,10 @@ async def get_skills(
     return await service.get_all(filters)
 
 
-@router.get("/{skill_id}")
+@router.get(
+    "/{skill_id}",
+    dependencies=[Security(get_current_active_user, scopes=[Scope.SKILLS_DETAIL])],
+)
 async def get_skill(
     skill_id: UUID,
     service: SkillServiceDep,

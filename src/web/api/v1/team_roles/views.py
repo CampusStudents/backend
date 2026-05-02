@@ -16,7 +16,12 @@ from src.web.api.dependencies import TeamRoleServiceDep, get_current_active_user
 router = APIRouter(prefix=settings.api.v1.team_roles)
 
 
-@router.get("/")
+@router.get(
+    "/",
+    dependencies=[
+        Security(get_current_active_user, scopes=[Scope.TEAM_ROLES_LIST]),
+    ],
+)
 async def get_team_roles(
     service: TeamRoleServiceDep,
     filters: Annotated[TeamRoleFilter, Query()],
@@ -24,7 +29,12 @@ async def get_team_roles(
     return await service.get_all(filters)
 
 
-@router.get("/{team_role_id}")
+@router.get(
+    "/{team_role_id}",
+    dependencies=[
+        Security(get_current_active_user, scopes=[Scope.TEAM_ROLES_DETAIL]),
+    ],
+)
 async def get_team_role(
     team_role_id: UUID,
     service: TeamRoleServiceDep,
