@@ -1,21 +1,38 @@
+x-backend-base: &backend-base
+  build: ./
+  env_file:
+    - .env
+  environment:
+    APP__DB__HOST: pg
+    APP__RUN__HOST: 0.0.0.0
+
 services:
-  backend:
-    build: ./
-    environment:
-      APP__DB__HOST: pg
-      APP__RUN__HOST: 0.0.0.0
-    ports:
-      - "8000:8000"
+  alembic:
+    <<: *backend-base
     depends_on:
       pg:
         condition: service_healthy
+    command: [ "alembic", "upgrade", "head" ]
+
+  rbac:
+    <<: *backend-base
+    depends_on:
+      alembic:
+        condition: service_completed_successfully
+    command: [ "python", "-m", "src.service.rbac.cli" ]
+
+  backend:
+    <<: *backend-base
+    ports:
+      - "8000:8000"
+    depends_on:
+      rbac:
+        condition: service_completed_successfully
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8000/api/health" ]
       interval: 10s
       timeout: 5s
       retries: 10
-    env_file:
-      - .env
   pg:
     image: postgres:18
     environment:

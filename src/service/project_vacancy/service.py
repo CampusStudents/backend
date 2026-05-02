@@ -17,6 +17,7 @@ from src.service.user.schema import UserDTO
 from .schema import (
     CreateProjectVacancySchema,
     ProjectVacancyDTO,
+    ProjectVacancyFilter,
     UpdateProjectVacancySchema,
 )
 
@@ -36,12 +37,18 @@ class ProjectVacancyService:
         self.team_role_repository = team_role_repository
         self.skill_repository = skill_repository
 
-    async def get_by_project_id(self, project_id: UUID) -> list[ProjectVacancyDTO]:
+    async def get_by_project_id(
+        self,
+        project_id: UUID,
+        filters: ProjectVacancyFilter,
+    ) -> list[ProjectVacancyDTO]:
         async with self.uow as uow:
             await self._ensure_project_exists(uow.session, project_id)
+            repository_filters = filters.to_repository_filters()
+            repository_filters["project_id"] = project_id
             vacancies = await self.repository.get_multi_out(
                 uow.session,
-                {"project_id": project_id},
+                repository_filters,
             )
             return [ProjectVacancyDTO.model_validate(vacancy) for vacancy in vacancies]
 
@@ -166,7 +173,7 @@ class ProjectVacancyService:
         session: AsyncSession,
         skill_ids: list[UUID],
     ) -> None:
-        skills = await self.skill_repository.get_multi(session, {"id": skill_ids})
+        skills = await self.skill_repository.get_multi(session, {"id__in": skill_ids})
         if len(skills) != len(skill_ids):
             raise SkillNotFoundError()
 

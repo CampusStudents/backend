@@ -1,12 +1,14 @@
+from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Security, status
+from fastapi import APIRouter, Query, Security, status
 
 from src.core.config import settings
 from src.core.security.scopes import Scope
 from src.service.university.schema import (
     CreateUniversitySchema,
     UniversityDTO,
+    UniversityFilter,
     UpdateUniversitySchema,
 )
 from src.web.api.dependencies import (
@@ -25,8 +27,9 @@ router = APIRouter(prefix=settings.api.v1.universities)
 )
 async def get_universities(
     service: UniversityServiceDep,
+    filters: Annotated[UniversityFilter, Query()],
 ) -> list[UniversityDTO]:
-    return await service.get_all()
+    return await service.get_all(filters)
 
 
 @router.get(

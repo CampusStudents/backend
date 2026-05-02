@@ -1,11 +1,22 @@
 from collections.abc import Sequence
+from enum import StrEnum
 from typing import Any
 from uuid import UUID
 
 from sqlalchemy import Select, delete, insert, inspect, select, update
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
+from src.core.exceptions.service.base import BadRequestError
 from src.db.models import Base
+
+FILTER_OPERATOR_SEPARATOR = "__"
+PAGINATION_FILTERS = {"limit", "offset"}
+
+
+class FilterOperator(StrEnum):
+    EQ = "eq"
+    IN = "in"
+    LIKE = "like"
 
 
 class SQLAlchemyRepository[Model: Base]:
@@ -34,17 +45,74 @@ class SQLAlchemyRepository[Model: Base]:
 
         mapper = inspect(self.model)
         for key, value in filters.items():
-            if key not in mapper.columns:
-                msg = f"Unknown filter field '{key}' for {self.model.__name__}"
-                raise ValueError(msg)
+            if key in PAGINATION_FILTERS:
+                continue
 
-            column = getattr(self.model, key)
-            if isinstance(value, list | tuple | set | frozenset):
-                query = query.where(column.in_(value))
-            elif value is None:
-                query = query.where(column.is_(None))
-            else:
-                query = query.where(column == value)
+            field_name, operator = self._parse_filter_key(key)
+            if field_name not in mapper.columns:
+                msg = f"Unknown filter field '{key}' for {self.model.__name__}"
+                raise BadRequestError(msg)
+
+            column = getattr(self.model, field_name)
+            query = self._apply_filter_operator(query, column, operator, value)
+
+        return query
+
+    def _parse_filter_key(self, key: str) -> tuple[str, FilterOperator]:
+        if FILTER_OPERATOR_SEPARATOR not in key:
+            return key, FilterOperator.EQ
+
+        field_name, operator_value = key.rsplit(FILTER_OPERATOR_SEPARATOR, maxsplit=1)
+        try:
+            operator = FilterOperator(operator_value)
+        except ValueError as exc:
+            msg = f"Unsupported filter operator '{operator_value}'"
+            raise BadRequestError(msg) from exc
+
+        return field_name, operator
+
+    def _apply_filter_operator(
+        self,
+        query: Select[tuple[Model]],
+        column: Any,
+        operator: FilterOperator,
+        value: Any,
+    ) -> Select[tuple[Model]]:
+        match operator:
+            case FilterOperator.IN:
+                return query.where(column.in_(self._normalize_filter_sequence(value)))
+            case FilterOperator.LIKE:
+                return query.where(column.like(value))
+            case FilterOperator.EQ if value is None:
+                return query.where(column.is_(None))
+            case FilterOperator.EQ:
+                return query.where(column == value)
+            case _:
+                return query
+
+    def _normalize_filter_sequence(self, value: Any) -> Sequence:
+        match value:
+            case str() | bytes():
+                return [value]
+            case list() | tuple() | set() | frozenset():
+                return value
+            case _:
+                return [value]
+
+    def apply_pagination(
+        self,
+        query: Select[tuple[Model]],
+        filters: dict | None = None,
+    ) -> Select[tuple[Model]]:
+        if not filters:
+            return query
+
+        limit = filters.get("limit")
+        offset = filters.get("offset")
+        if offset:
+            query = query.offset(offset)
+        if limit is not None:
+            query = query.limit(limit)
         return query
 
     def apply_order_by(
@@ -92,6 +160,7 @@ class SQLAlchemyRepository[Model: Base]:
         stmt = self.statement_get()
         stmt = self.apply_filters(stmt, filters)
         stmt = self.apply_order_by(stmt, order_by)
+        stmt = self.apply_pagination(stmt, filters)
         result = await session.scalars(stmt)
         return result.all()
 
@@ -105,6 +174,7 @@ class SQLAlchemyRepository[Model: Base]:
         stmt = self.apply_filters(stmt, filters)
         stmt = self.apply_related_load(stmt)
         stmt = self.apply_order_by(stmt, order_by)
+        stmt = self.apply_pagination(stmt, filters)
         result = await session.scalars(stmt)
         return result.all()
 

@@ -1,12 +1,13 @@
 import logging
 from datetime import timedelta
 
-from fastapi import APIRouter, BackgroundTasks, Depends, Response, Security
+from fastapi import APIRouter, BackgroundTasks, Depends, Request, Response, Security
 from pydantic import BaseModel, EmailStr
 
 from src.core.config import settings
 from src.core.exceptions.service.auth import InvalidTokenError, TokenExpiredError
 from src.core.exceptions.service.base import BadRequestError
+from src.core.security.rate_limit import limiter
 from src.core.security.scopes import Scope
 from src.core.security.send_email import (
     send_password_reset_email,
@@ -59,8 +60,12 @@ def set_refresh_token_to_response(response: Response, token: str):
 
 
 @router.post("/login")
+@limiter.limit(settings.rate_limit.auth_login)
 async def login(
-        data: LoginSchema, auth_service: AuthServiceDep, response: Response
+        request: Request, # noqa: ARG001
+        data: LoginSchema,
+        auth_service: AuthServiceDep,
+        response: Response,
 ) -> AccessToken:
     """
     Аутентификация пользователя.
@@ -72,7 +77,9 @@ async def login(
 
 
 @router.post("/register")
+@limiter.limit(settings.rate_limit.auth_register)
 async def register(
+        request: Request, # noqa: ARG001
         data: RegisterSchema,
         user_service: UserServiceDep,
         background_tasks: BackgroundTasks,
@@ -87,7 +94,9 @@ async def register(
 
 
 @router.post("/refresh")
+@limiter.limit(settings.rate_limit.auth_refresh)
 async def refresh_jwt(
+        request: Request, # noqa: ARG001
         response: Response,
         auth_service: AuthServiceDep,
         token: str = Depends(get_token_for_refresh),
@@ -118,7 +127,9 @@ async def logout(
 
 
 @router.post("/change_password")
+@limiter.limit(settings.rate_limit.auth_change_password)
 async def change_password(
+        request: Request, # noqa: ARG001
         data: ChangePasswordSchema,
         auth_service: AuthServiceDep,
         user: UserDTO = Security(
@@ -151,7 +162,9 @@ async def quit_all(
 
 
 @router.get("/verify")
+@limiter.limit(settings.rate_limit.auth_verify)
 async def verify_account(
+        request: Request, # noqa: ARG001
         token: str,
         service: AuthServiceDep,
 ):
@@ -168,7 +181,9 @@ async def verify_account(
 
 
 @router.post("/resend_verification")
+@limiter.limit(settings.rate_limit.auth_resend_verification)
 async def resend_verification(
+        request: Request, # noqa: ARG001
         background_tasks: BackgroundTasks,
         user: UserDTO = Security(
             get_current_active_user, scopes=[Scope.AUTH_RESEND_VERIFICATION]
@@ -189,7 +204,9 @@ class ForgotPasswordSchema(BaseModel):
 
 
 @router.post("/forgot_password")
+@limiter.limit(settings.rate_limit.auth_forgot_password)
 async def forgot_password(
+        request: Request, # noqa: ARG001
         data: ForgotPasswordSchema,
         background_tasks: BackgroundTasks,
         user_service: UserServiceDep,
@@ -218,7 +235,9 @@ async def forgot_password(
 
 
 @router.post("/reset_password")
+@limiter.limit(settings.rate_limit.auth_reset_password)
 async def reset_password(
+        request: Request, # noqa: ARG001
         data: ResetPasswordSchema,
         service: AuthServiceDep,
 ):
@@ -230,4 +249,3 @@ async def reset_password(
     except (InvalidTokenError, TokenExpiredError):
         raise BadRequestError(detail="Invalid or expired token") from None
     return {"message": "Пароль успешно изменен"}
-

@@ -4,21 +4,22 @@ from src.service.filters import BaseFilter
 from src.service.helpers import EntityDTO, NonEmptyStr
 
 
-class CityBaseSchema(BaseModel):
+class SkillBaseSchema(BaseModel):
     name: NonEmptyStr
 
 
-class CreateCitySchema(CityBaseSchema):
+class CreateSkillSchema(SkillBaseSchema):
     pass
 
 
-class UpdateCitySchema(BaseModel):
+class UpdateSkillSchema(BaseModel):
     name: NonEmptyStr | None = None
 
 
-class CityFilter(BaseFilter):
+class SkillFilter(BaseFilter):
+    name: NonEmptyStr | None = None
     name__like: str | None = None
 
 
-class CityDTO(CityBaseSchema, EntityDTO):
+class SkillDTO(SkillBaseSchema, EntityDTO):
     pass

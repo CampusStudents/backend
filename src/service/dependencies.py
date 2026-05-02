@@ -15,6 +15,8 @@ from src.service.auth.service import AuthService
 from src.service.city.service import CityService
 from src.service.project.service import ProjectService
 from src.service.project_vacancy.service import ProjectVacancyService
+from src.service.skill.service import SkillService
+from src.service.team_role.service import TeamRoleService
 from src.service.university.service import UniversityService
 from src.service.user.service import UserService
 from src.service.user_profile.service import UserProfileService
@@ -32,6 +34,14 @@ def get_user_service() -> UserService:
 
 def get_city_service() -> CityService:
     return CityService(get_unit_of_work(), get_city_repository())
+
+
+def get_skill_service() -> SkillService:
+    return SkillService(get_unit_of_work(), get_skill_repository())
+
+
+def get_team_role_service() -> TeamRoleService:
+    return TeamRoleService(get_unit_of_work(), get_team_role_repository())
 
 
 def get_project_service() -> ProjectService:
