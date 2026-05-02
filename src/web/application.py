@@ -4,6 +4,7 @@ from slowapi.errors import RateLimitExceeded
 from fastapi.routing import APIRoute
 
 from src.core.config import configure_logging
+from src.core.security.rate_limit import limiter
 from src.web.api import api_router
 from src.web.lifespan import lifespan_setup
 from src.web.middleware import request_handler
