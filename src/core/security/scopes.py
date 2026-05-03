@@ -3,6 +3,10 @@ def scope(subject: str, action: str) -> str:
 
 
 class Scope:
+    APPLICATIONS_LIST = scope("applications", "list")
+    APPLICATIONS_CREATE = scope("applications", "create")
+    APPLICATIONS_UPDATE = scope("applications", "update")
+    APPLICATIONS_WITHDRAW = scope("applications", "withdraw")
     AUTH_ME = scope("auth", "me")
     AUTH_LOGOUT = scope("auth", "logout")
     AUTH_CHANGE_PASSWORD = scope("auth", "change_password")

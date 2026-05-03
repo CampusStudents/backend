@@ -1,4 +1,5 @@
 from src.db.dependencies import (
+    get_application_repository,
     get_city_repository,
     get_project_repository,
     get_project_vacancy_repository,
@@ -11,6 +12,7 @@ from src.db.dependencies import (
     get_user_profile_repository,
     get_user_repository,
 )
+from src.service.application.service import ApplicationService
 from src.service.auth.service import AuthService
 from src.service.city.service import CityService
 from src.service.project.service import ProjectService
@@ -30,6 +32,15 @@ def get_auth_service() -> AuthService:
 
 def get_user_service() -> UserService:
     return UserService(get_unit_of_work(), get_user_repository(), get_role_repository())
+
+
+def get_application_service() -> ApplicationService:
+    return ApplicationService(
+        get_unit_of_work(),
+        get_application_repository(),
+        get_project_repository(),
+        get_project_vacancy_repository(),
+    )
 
 
 def get_city_service() -> CityService:

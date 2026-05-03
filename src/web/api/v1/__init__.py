@@ -2,6 +2,7 @@ from fastapi import APIRouter
 
 from src.core.config import settings
 
+from .applications import router as applications_router
 from .auth import router as auth_router
 from .cities import router as cities_router
 from .projects import router as projects_router
@@ -13,6 +14,7 @@ from .users import router as users_router
 
 router = APIRouter(prefix=settings.api.v1.prefix)
 
+router.include_router(applications_router, tags=["Applications"])
 router.include_router(auth_router, prefix=settings.api.v1.auth)
 router.include_router(cities_router, tags=["Cities"])
 router.include_router(projects_router, tags=["Projects"])

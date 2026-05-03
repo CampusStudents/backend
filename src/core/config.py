@@ -44,13 +44,13 @@ class GunicornConfig(BaseModel):
     reload: bool = False
     preload_app: bool = True
     access_log_format: str = (
-        '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s '
-        '"%(f)s" "%(a)s" %(D)s'
+        '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s" %(D)s'
     )
 
 
 class ApiV1Prefix(BaseModel):
     prefix: str = "/v1"
+    applications: str = "/applications"
     users: str = "/users"
     auth: str = "/auth"
     cities: str = "/cities"
@@ -84,6 +84,7 @@ class RBACConfig(BaseModel):
         "team_roles",
         "universities",
         "user_profiles",
+        "applications",
         "projects",
         "project_vacancies",
     ]
@@ -121,6 +122,10 @@ class RBACConfig(BaseModel):
             "user_profiles:detail",
             "user_profiles:create",
             "user_profiles:update",
+            "applications:list",
+            "applications:create",
+            "applications:update",
+            "applications:withdraw",
             "projects:list",
             "projects:detail",
             "projects:create",

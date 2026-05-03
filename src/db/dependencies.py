@@ -1,4 +1,5 @@
 from src.db.db_helper import db_helper
+from src.db.repository.application import ApplicationRepository
 from src.db.repository.city import CityRepository
 from src.db.repository.project import ProjectRepository
 from src.db.repository.project_vacancy import ProjectVacancyRepository
@@ -14,6 +15,10 @@ from src.db.unit_of_work import UnitOfWork
 
 def get_unit_of_work() -> UnitOfWork:
     return UnitOfWork(db_helper.async_session_factory)
+
+
+def get_application_repository() -> ApplicationRepository:
+    return ApplicationRepository()
 
 
 def get_user_repository() -> UserRepository:
