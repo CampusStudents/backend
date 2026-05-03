@@ -1,5 +1,5 @@
 x-backend-base: &backend-base
-  build: ./
+  image: campusback/app:latest
   env_file:
     - .env
   environment:
