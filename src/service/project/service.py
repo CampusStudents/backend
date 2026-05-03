@@ -42,10 +42,7 @@ class ProjectService:
             await self._ensure_city_exists(uow.session, data.city_id)
             data_to_create = data.model_dump()
             data_to_create["owner_id"] = owner.id
-            project = await self.repository.create(
-                uow.session,
-                data_to_create
-            )
+            project = await self.repository.create(uow.session, data_to_create)
             await uow.commit()
             return ProjectDTO.model_validate(project)
 

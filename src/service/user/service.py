@@ -12,10 +12,10 @@ from .schema import RegisterSchema, UpdateUserRolesSchema, UserDTO
 
 class UserService:
     def __init__(
-            self,
-            uow: UnitOfWork,
-            repository: UserRepository,
-            role_repository: RoleRepository,
+        self,
+        uow: UnitOfWork,
+        repository: UserRepository,
+        role_repository: RoleRepository,
     ):
         self.uow = uow
         self.repository = repository

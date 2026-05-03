@@ -81,10 +81,7 @@ class ProjectVacancyService:
             # Create
             data_to_create = data.model_dump(exclude={"skill_ids"})
             data_to_create["project_id"] = project_id
-            vacancy = await self.repository.create(
-                uow.session,
-                data_to_create
-            )
+            vacancy = await self.repository.create(uow.session, data_to_create)
             await self.repository.set_skills(uow.session, vacancy.id, data.skill_ids)
             await uow.commit()
 
@@ -131,7 +128,9 @@ class ProjectVacancyService:
     ) -> None:
         async with self.uow as uow:
             project = await self._ensure_project_exists(uow.session, project_id)
-            vacancy = await self._get_project_vacancy_or_raise(uow.session, project_id, vacancy_id)
+            vacancy = await self._get_project_vacancy_or_raise(
+                uow.session, project_id, vacancy_id
+            )
             self._ensure_owner_or_admin(project.owner_id, user)
             await self.repository.delete_by_id(uow.session, vacancy.id)
             await uow.commit()

@@ -8,7 +8,7 @@ from src.db.db_helper import db_helper
 
 @asynccontextmanager
 async def lifespan_setup(
-        app: FastAPI, # noqa: ARG001
+    app: FastAPI,  # noqa: ARG001
 ) -> AsyncGenerator[None]:  # pragma: no cover
     """
     Actions to run on application startup.

@@ -28,11 +28,11 @@ email_templates = Environment(
 
 
 async def send_email(
-        from_email: str,
-        to_email: str,
-        subject: str,
-        body: str,
-        html_body: str | None = None,
+    from_email: str,
+    to_email: str,
+    subject: str,
+    body: str,
+    html_body: str | None = None,
 ):
     message = EmailMessage()
     message["From"] = from_email
@@ -91,7 +91,7 @@ def create_token_for_verification(email: str):
 
 
 async def send_verification_email(
-        email: str,
+    email: str,
 ):
     token = create_token_for_verification(email)
     verification_link = generate_link_for_verification(token)

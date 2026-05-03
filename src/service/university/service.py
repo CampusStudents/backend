@@ -34,8 +34,7 @@ class UniversityService:
                 filters.to_repository_filters(),
             )
             return [
-                UniversityDTO.model_validate(university)
-                for university in universities
+                UniversityDTO.model_validate(university) for university in universities
             ]
 
     async def get_by_id(self, university_id: UUID) -> UniversityDTO:

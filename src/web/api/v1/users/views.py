@@ -17,9 +17,9 @@ router = APIRouter(prefix=settings.api.v1.users)
     ],
 )
 async def update_user_roles(
-        user_id: UUID,
-        data: UpdateUserRolesSchema,
-        service: UserServiceDep,
+    user_id: UUID,
+    data: UpdateUserRolesSchema,
+    service: UserServiceDep,
 ) -> UserDTO:
     """
     Назначение/обновление ролей пользователя.

@@ -12,7 +12,7 @@ from src.core.config import settings
 class DatabaseHelper:
     def __init__(
         self,
-            url: str | URL,
+        url: str | URL,
         echo: bool = False,
         echo_pool: bool = False,
         max_overflow: int = 10,

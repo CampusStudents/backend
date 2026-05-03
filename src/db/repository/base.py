@@ -182,7 +182,7 @@ class SQLAlchemyRepository[Model: Base]:
         await session.execute(delete(self.model).where(self.model.id == entity_id))
 
     async def update(
-            self, session: AsyncSession, entity_id: UUID, data: dict
+        self, session: AsyncSession, entity_id: UUID, data: dict
     ) -> Model | None:
         data_to_update = self._filter_model_fields(data)
         if not data_to_update:

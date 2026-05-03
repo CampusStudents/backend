@@ -1,7 +1,7 @@
 from fastapi import FastAPI
+from fastapi.routing import APIRoute
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-from fastapi.routing import APIRoute
 
 from src.core.config import configure_logging
 from src.core.security.rate_limit import limiter
