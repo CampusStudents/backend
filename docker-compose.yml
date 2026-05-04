@@ -1,5 +1,9 @@
+
+x-backend-image: &backend-image campusback/app:latest
+x-frontend-image: &frontend-image nginx:1.29-alpine
+
 x-backend-base: &backend-base
-  image: campusback/app:latest
+  image: *backend-image
   env_file:
     - .env
   environment:
@@ -29,19 +33,13 @@ services:
       rbac:
         condition: service_completed_successfully
     healthcheck:
-      test:
-        [
-          "CMD",
-          "python",
-          "-c",
-          "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health', timeout=5).read()",
-        ]
+      test: [ "CMD", "curl", "-f", "-s", "--max-time", "5", "http://localhost:8000/api/health" ]
       interval: 10s
       timeout: 5s
       retries: 10
 
   nginx:
-    image: nginx:1.29-alpine
+    image: *frontend-image
     ports:
       - "80:80"
     volumes:
