@@ -12,10 +12,10 @@ logger = logging.getLogger(__name__)
 
 
 def encode_jwt(
-        payload: dict,
-        expires_in: timedelta,
-        private_key: str = settings.auth.private_key_path.read_text(),
-        algorithm: str = settings.auth.algorithm,
+    payload: dict,
+    expires_in: timedelta,
+    private_key: str = settings.auth.private_key_path.read_text(),
+    algorithm: str = settings.auth.algorithm,
 ):
     to_encode = payload.copy()
     now = datetime.now(UTC)
@@ -26,9 +26,9 @@ def encode_jwt(
 
 
 def decode_jwt(
-        jwt_token: str | bytes,
-        public_key: str = settings.auth.public_key_path.read_text(),
-        algorithm: str = settings.auth.algorithm,
+    jwt_token: str | bytes,
+    public_key: str = settings.auth.public_key_path.read_text(),
+    algorithm: str = settings.auth.algorithm,
 ) -> dict:
     try:
         decoded_jwt = jwt.decode(jwt_token, public_key, algorithms=[algorithm])

@@ -2,6 +2,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field, field_validator
 
+from src.service.filters import BaseFilter
 from src.service.helpers import EntityDTO, ShortDTO
 
 SKILL_IDS_UNIQUE_ERROR = "Skill ids must be unique"
@@ -53,6 +54,10 @@ class UpdateProjectVacancySchema(BaseModel):
         if value is not None and len(set(value)) != len(value):
             raise ValueError(SKILL_IDS_UNIQUE_ERROR)
         return value
+
+
+class ProjectVacancyFilter(BaseFilter):
+    team_role_id__in: list[UUID] | None = Field(default=None, alias="team_role_id")
 
 
 class ProjectVacancyDTO(ProjectVacancyBaseSchema, EntityDTO):

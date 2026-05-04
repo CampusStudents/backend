@@ -18,7 +18,7 @@ class UserRepository(SQLAlchemyRepository):
         return query.options(selectinload(User.roles).selectinload(Role.permissions))
 
     async def assign_roles(
-            self, session: AsyncSession, user_id, role_ids: list
+        self, session: AsyncSession, user_id, role_ids: list
     ) -> None:
         if not role_ids:
             return
@@ -27,7 +27,7 @@ class UserRepository(SQLAlchemyRepository):
         await session.execute(stmt)
 
     async def replace_roles(
-            self, session: AsyncSession, user_id, role_ids: list
+        self, session: AsyncSession, user_id, role_ids: list
     ) -> None:
         await session.execute(delete(user_roles).where(user_roles.c.user_id == user_id))
         await self.assign_roles(session, user_id, role_ids)

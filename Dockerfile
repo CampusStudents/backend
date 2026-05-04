@@ -1,4 +1,4 @@
-﻿FROM python:3.14-slim
+FROM python:3.14-slim
 
 COPY --from=ghcr.io/astral-sh/uv:0.10.9 /uv /bin/uv
 
@@ -27,12 +27,12 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 COPY src ./src
 COPY scripts ./scripts
+COPY templates ./templates
 COPY alembic.ini ./alembic.ini
+COPY gunicorn_config.py ./gunicorn_config.py
 
 # Sync the project
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev
 
-RUN chmod +x scripts/*.sh
-
-ENTRYPOINT ["./scripts/entrypoint.sh"]
+CMD ["gunicorn", "src.main:main_app", "-c", "gunicorn_config.py"]

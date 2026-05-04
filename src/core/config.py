@@ -1,4 +1,5 @@
 import logging
+import multiprocessing
 from pathlib import Path
 from typing import Literal
 
@@ -29,11 +30,32 @@ class RunConfig(BaseModel):
     port: int = 8000
 
 
+class GunicornConfig(BaseModel):
+    host: str = "0.0.0.0"
+    port: int = 8000
+    workers: int = multiprocessing.cpu_count() * 2 + 1
+    worker_class: str = "uvicorn.workers.UvicornWorker"
+    worker_connections: int = 1000
+    keepalive: int = 5
+    max_requests: int = 1000
+    max_requests_jitter: int = 50
+    timeout: int = 30
+    graceful_timeout: int = 30
+    reload: bool = False
+    preload_app: bool = True
+    access_log_format: str = (
+        '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s" %(D)s'
+    )
+
+
 class ApiV1Prefix(BaseModel):
     prefix: str = "/v1"
+    applications: str = "/applications"
     users: str = "/users"
     auth: str = "/auth"
     cities: str = "/cities"
+    skills: str = "/skills"
+    team_roles: str = "/team-roles"
     universities: str = "/universities"
     projects: str = "/projects"
 
@@ -58,8 +80,11 @@ class RBACConfig(BaseModel):
     initial_subjects: list[str] = [
         "users",
         "cities",
+        "skills",
+        "team_roles",
         "universities",
         "user_profiles",
+        "applications",
         "projects",
         "project_vacancies",
     ]
@@ -88,11 +113,19 @@ class RBACConfig(BaseModel):
             "auth:resend_verification",
             "cities:list",
             "cities:detail",
+            "skills:list",
+            "skills:detail",
+            "team_roles:list",
+            "team_roles:detail",
             "universities:list",
             "universities:detail",
             "user_profiles:detail",
             "user_profiles:create",
             "user_profiles:update",
+            "applications:list",
+            "applications:create",
+            "applications:update",
+            "applications:withdraw",
             "projects:list",
             "projects:detail",
             "projects:create",
@@ -115,6 +148,17 @@ class EmailConfig(BaseModel):
     smtp_host: str = "maildev"
     smtp_port: int = 1025
     from_email: str = "campus@mail.ru"
+
+
+class RateLimitConfig(BaseModel):
+    auth_login: str = "5/minute"
+    auth_register: str = "3/minute"
+    auth_refresh: str = "30/minute"
+    auth_verify: str = "10/minute"
+    auth_resend_verification: str = "3/hour"
+    auth_forgot_password: str = "3/hour"
+    auth_reset_password: str = "5/hour"
+    auth_change_password: str = "5/hour"
 
 
 class DatabaseConfig(BaseModel):
@@ -157,10 +201,12 @@ class Settings(BaseSettings):
         env_prefix="APP__",
     )
     run: RunConfig = RunConfig()
+    gunicorn: GunicornConfig = GunicornConfig()
     api: ApiPrefix = ApiPrefix()
     auth: AuthConfig = AuthConfig()
     rbac: RBACConfig
     email: EmailConfig = EmailConfig()
+    rate_limit: RateLimitConfig = RateLimitConfig()
     db: DatabaseConfig
     app_url: str = "127.0.0.1:8000"
 

@@ -3,6 +3,10 @@ def scope(subject: str, action: str) -> str:
 
 
 class Scope:
+    APPLICATIONS_LIST = scope("applications", "list")
+    APPLICATIONS_CREATE = scope("applications", "create")
+    APPLICATIONS_UPDATE = scope("applications", "update")
+    APPLICATIONS_WITHDRAW = scope("applications", "withdraw")
     AUTH_ME = scope("auth", "me")
     AUTH_LOGOUT = scope("auth", "logout")
     AUTH_CHANGE_PASSWORD = scope("auth", "change_password")
@@ -13,6 +17,16 @@ class Scope:
     CITIES_CREATE = scope("cities", "create")
     CITIES_UPDATE = scope("cities", "update")
     CITIES_DELETE = scope("cities", "delete")
+    SKILLS_LIST = scope("skills", "list")
+    SKILLS_DETAIL = scope("skills", "detail")
+    SKILLS_CREATE = scope("skills", "create")
+    SKILLS_UPDATE = scope("skills", "update")
+    SKILLS_DELETE = scope("skills", "delete")
+    TEAM_ROLES_LIST = scope("team_roles", "list")
+    TEAM_ROLES_DETAIL = scope("team_roles", "detail")
+    TEAM_ROLES_CREATE = scope("team_roles", "create")
+    TEAM_ROLES_UPDATE = scope("team_roles", "update")
+    TEAM_ROLES_DELETE = scope("team_roles", "delete")
     UNIVERSITIES_LIST = scope("universities", "list")
     UNIVERSITIES_DETAIL = scope("universities", "detail")
     UNIVERSITIES_CREATE = scope("universities", "create")

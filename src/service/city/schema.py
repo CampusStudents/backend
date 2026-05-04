@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+from src.service.filters import BaseFilter
 from src.service.helpers import EntityDTO, NonEmptyStr
 
 
@@ -13,6 +14,10 @@ class CreateCitySchema(CityBaseSchema):
 
 class UpdateCitySchema(BaseModel):
     name: NonEmptyStr | None = None
+
+
+class CityFilter(BaseFilter):
+    name__like: str | None = None
 
 
 class CityDTO(CityBaseSchema, EntityDTO):

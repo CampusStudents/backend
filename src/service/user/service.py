@@ -12,10 +12,10 @@ from .schema import RegisterSchema, UpdateUserRolesSchema, UserDTO
 
 class UserService:
     def __init__(
-            self,
-            uow: UnitOfWork,
-            repository: UserRepository,
-            role_repository: RoleRepository,
+        self,
+        uow: UnitOfWork,
+        repository: UserRepository,
+        role_repository: RoleRepository,
     ):
         self.uow = uow
         self.repository = repository
@@ -48,7 +48,7 @@ class UserService:
 
             roles = await self.role_repository.get_multi(
                 uow.session,
-                {"name": ["public", "user"]},
+                {"name__in": ["public", "user"]},
             )
             if len(roles) != 2:  # noqa: PLR2004
                 msg = "User roles is not configured"
@@ -73,7 +73,7 @@ class UserService:
 
             roles = await self.role_repository.get_multi(
                 uow.session,
-                {"name": data.roles},
+                {"name__in": data.roles},
             )
             if len(roles) != len(data.roles):
                 msg = "One or more roles not found"

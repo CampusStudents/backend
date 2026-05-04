@@ -8,7 +8,12 @@ from src.db.repository.city import CityRepository
 from src.db.repository.university import UniversityRepository
 from src.db.unit_of_work import UnitOfWork
 
-from .schema import CreateUniversitySchema, UniversityDTO, UpdateUniversitySchema
+from .schema import (
+    CreateUniversitySchema,
+    UniversityDTO,
+    UniversityFilter,
+    UpdateUniversitySchema,
+)
 
 
 class UniversityService:
@@ -22,12 +27,14 @@ class UniversityService:
         self.repository = repository
         self.city_repository = city_repository
 
-    async def get_all(self) -> list[UniversityDTO]:
+    async def get_all(self, filters: UniversityFilter) -> list[UniversityDTO]:
         async with self.uow as uow:
-            universities = await self.repository.get_multi(uow.session)
+            universities = await self.repository.get_multi(
+                uow.session,
+                filters.to_repository_filters(),
+            )
             return [
-                UniversityDTO.model_validate(university)
-                for university in universities
+                UniversityDTO.model_validate(university) for university in universities
             ]
 
     async def get_by_id(self, university_id: UUID) -> UniversityDTO:

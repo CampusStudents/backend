@@ -33,27 +33,27 @@ from .schema import LoginSchema
 
 class AuthService:
     def __init__(
-            self,
-            uow: UnitOfWork,
-            session_repository: RefreshSessionRepository,
-            user_repository: UserRepository,
+        self,
+        uow: UnitOfWork,
+        session_repository: RefreshSessionRepository,
+        user_repository: UserRepository,
     ):
         self.uow = uow
         self.session_repository = session_repository
         self.user_repository = user_repository
 
     async def _get_user_by_email(
-            self, session: AsyncSession, email: str
+        self, session: AsyncSession, email: str
     ) -> User | None:
         return await self.user_repository.get_out(session, {"email": email})
 
     async def _get_user_by_email_with_roles(
-            self, session: AsyncSession, email: str
+        self, session: AsyncSession, email: str
     ) -> User | None:
         return await self.user_repository.get_out(session, {"email": email})
 
     async def _get_user_by_email_or_raise(
-            self, session: AsyncSession, email: str
+        self, session: AsyncSession, email: str
     ) -> User:
         user = await self._get_user_by_email(session, email)
         if not user:
@@ -63,7 +63,7 @@ class AuthService:
 
     @classmethod
     def _create_token(
-            cls, payload: dict, token_type: str, expires_in: timedelta
+        cls, payload: dict, token_type: str, expires_in: timedelta
     ) -> str:
         jwt_payload = {"type": token_type}
         jwt_payload.update(payload)
@@ -96,7 +96,7 @@ class AuthService:
             {
                 "refresh_jti": payload["jti"],
                 "expires_at": datetime.now()
-                              + timedelta(days=settings.auth.refresh_token_expire_days),
+                + timedelta(days=settings.auth.refresh_token_expire_days),
                 "user_id": user.id,
             },
         )
@@ -111,7 +111,7 @@ class AuthService:
         async with self.uow as uow:
             user = await self._get_user_by_email(uow.session, data.email)
             if not user or not verify_password(
-                    data.password.get_secret_value(), user.password_hash
+                data.password.get_secret_value(), user.password_hash
             ):
                 raise NotAuthenticatedError
             tokens = await self._create_auth_tokens(uow.session, user)
@@ -174,7 +174,7 @@ class AuthService:
             await uow.commit()
 
     async def change_password(
-            self, email: str, old_password: str, new_password: str
+        self, email: str, old_password: str, new_password: str
     ) -> None:
         async with self.uow as uow:
             user = await self._get_user_by_email_or_raise(uow.session, email)

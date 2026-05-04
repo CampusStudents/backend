@@ -1,10 +1,16 @@
+from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Security, status
+from fastapi import APIRouter, Query, Security, status
 
 from src.core.config import settings
 from src.core.security.scopes import Scope
-from src.service.city.schema import CityDTO, CreateCitySchema, UpdateCitySchema
+from src.service.city.schema import (
+    CityDTO,
+    CityFilter,
+    CreateCitySchema,
+    UpdateCitySchema,
+)
 from src.web.api.dependencies import (
     CityServiceDep,
     get_current_active_user,
@@ -19,8 +25,9 @@ router = APIRouter(prefix=settings.api.v1.cities)
 )
 async def get_cities(
     service: CityServiceDep,
+    filters: Annotated[CityFilter, Query()],
 ) -> list[CityDTO]:
-    return await service.get_all()
+    return await service.get_all(filters)
 
 
 @router.get(

@@ -1,12 +1,13 @@
 import logging
 from datetime import timedelta
 
-from fastapi import APIRouter, BackgroundTasks, Depends, Response, Security
+from fastapi import APIRouter, BackgroundTasks, Depends, Request, Response, Security
 from pydantic import BaseModel, EmailStr
 
 from src.core.config import settings
 from src.core.exceptions.service.auth import InvalidTokenError, TokenExpiredError
 from src.core.exceptions.service.base import BadRequestError
+from src.core.security.rate_limit import limiter
 from src.core.security.scopes import Scope
 from src.core.security.send_email import (
     send_password_reset_email,
@@ -34,9 +35,7 @@ logger = logging.getLogger(__name__)
 
 @router.get("/me")
 async def get_user(
-        user: UserDTO = Security(
-            get_current_verified_user, scopes=[Scope.AUTH_ME]
-        ),
+    user: UserDTO = Security(get_current_verified_user, scopes=[Scope.AUTH_ME]),
 ):
     """
     Получение текущего пользователя.
@@ -59,8 +58,12 @@ def set_refresh_token_to_response(response: Response, token: str):
 
 
 @router.post("/login")
+@limiter.limit(settings.rate_limit.auth_login)
 async def login(
-        data: LoginSchema, auth_service: AuthServiceDep, response: Response
+    request: Request,  # noqa: ARG001
+    data: LoginSchema,
+    auth_service: AuthServiceDep,
+    response: Response,
 ) -> AccessToken:
     """
     Аутентификация пользователя.
@@ -72,10 +75,12 @@ async def login(
 
 
 @router.post("/register")
+@limiter.limit(settings.rate_limit.auth_register)
 async def register(
-        data: RegisterSchema,
-        user_service: UserServiceDep,
-        background_tasks: BackgroundTasks,
+    request: Request,  # noqa: ARG001
+    data: RegisterSchema,
+    user_service: UserServiceDep,
+    background_tasks: BackgroundTasks,
 ) -> UserDTO:
     """
     Регистрация нового пользователя.
@@ -87,10 +92,12 @@ async def register(
 
 
 @router.post("/refresh")
+@limiter.limit(settings.rate_limit.auth_refresh)
 async def refresh_jwt(
-        response: Response,
-        auth_service: AuthServiceDep,
-        token: str = Depends(get_token_for_refresh),
+    request: Request,  # noqa: ARG001
+    response: Response,
+    auth_service: AuthServiceDep,
+    token: str = Depends(get_token_for_refresh),
 ) -> AccessToken:
     """
     Обновление пары токенов с использованием refresh token из cookie.
@@ -105,9 +112,9 @@ async def refresh_jwt(
     dependencies=[Security(get_current_verified_user, scopes=[Scope.AUTH_LOGOUT])],
 )
 async def logout(
-        response: Response,
-        auth_service: AuthServiceDep,
-        token: str = Depends(get_token_for_refresh),
+    response: Response,
+    auth_service: AuthServiceDep,
+    token: str = Depends(get_token_for_refresh),
 ) -> None:
     """
     Выход из системы.
@@ -118,12 +125,14 @@ async def logout(
 
 
 @router.post("/change_password")
+@limiter.limit(settings.rate_limit.auth_change_password)
 async def change_password(
-        data: ChangePasswordSchema,
-        auth_service: AuthServiceDep,
-        user: UserDTO = Security(
-            get_current_verified_user, scopes=[Scope.AUTH_CHANGE_PASSWORD]
-        ),
+    request: Request,  # noqa: ARG001
+    data: ChangePasswordSchema,
+    auth_service: AuthServiceDep,
+    user: UserDTO = Security(
+        get_current_verified_user, scopes=[Scope.AUTH_CHANGE_PASSWORD]
+    ),
 ) -> None:
     """
     Смена пароля текущего пользователя.
@@ -137,11 +146,9 @@ async def change_password(
 
 @router.post("/quit_all")
 async def quit_all(
-        response: Response,
-        auth_service: AuthServiceDep,
-        user: UserDTO = Security(
-            get_current_verified_user, scopes=[Scope.AUTH_QUIT_ALL]
-        ),
+    response: Response,
+    auth_service: AuthServiceDep,
+    user: UserDTO = Security(get_current_verified_user, scopes=[Scope.AUTH_QUIT_ALL]),
 ) -> None:
     """
     Завершение всех сессий пользователя.
@@ -151,9 +158,11 @@ async def quit_all(
 
 
 @router.get("/verify")
+@limiter.limit(settings.rate_limit.auth_verify)
 async def verify_account(
-        token: str,
-        service: AuthServiceDep,
+    request: Request,  # noqa: ARG001
+    token: str,
+    service: AuthServiceDep,
 ):
     """
     Подтверждение email (JSON).
@@ -161,18 +170,20 @@ async def verify_account(
     """
     try:
         await service.verify_account(token)
-    except (InvalidTokenError, TokenExpiredError):
-        raise BadRequestError(detail="Invalid or expired token") # noqa: B904
+    except InvalidTokenError, TokenExpiredError:
+        raise BadRequestError(detail="Invalid or expired token")  # noqa: B904
     else:
         return {"message": "Account successfully verified"}
 
 
 @router.post("/resend_verification")
+@limiter.limit(settings.rate_limit.auth_resend_verification)
 async def resend_verification(
-        background_tasks: BackgroundTasks,
-        user: UserDTO = Security(
-            get_current_active_user, scopes=[Scope.AUTH_RESEND_VERIFICATION]
-        ),
+    request: Request,  # noqa: ARG001
+    background_tasks: BackgroundTasks,
+    user: UserDTO = Security(
+        get_current_active_user, scopes=[Scope.AUTH_RESEND_VERIFICATION]
+    ),
 ):
     """
     Повторная отправка письма с подтверждением email.
@@ -189,10 +200,12 @@ class ForgotPasswordSchema(BaseModel):
 
 
 @router.post("/forgot_password")
+@limiter.limit(settings.rate_limit.auth_forgot_password)
 async def forgot_password(
-        data: ForgotPasswordSchema,
-        background_tasks: BackgroundTasks,
-        user_service: UserServiceDep,
+    request: Request,  # noqa: ARG001
+    data: ForgotPasswordSchema,
+    background_tasks: BackgroundTasks,
+    user_service: UserServiceDep,
 ):
     """
     Запрос на восстановление пароля.
@@ -206,9 +219,7 @@ async def forgot_password(
             background_tasks.add_task(send_password_reset_email, str(data.email))
     except Exception as e:
         # Игнорируем любые ошибки, чтобы не раскрывать информацию о существовании email
-        logger.warning(
-            f"Error during password reset request for {data.email}: {e}"
-        )
+        logger.warning(f"Error during password reset request for {data.email}: {e}")
     return {
         "message": (
             "Если указанный email зарегистрирован, на него "
@@ -218,16 +229,17 @@ async def forgot_password(
 
 
 @router.post("/reset_password")
+@limiter.limit(settings.rate_limit.auth_reset_password)
 async def reset_password(
-        data: ResetPasswordSchema,
-        service: AuthServiceDep,
+    request: Request,  # noqa: ARG001
+    data: ResetPasswordSchema,
+    service: AuthServiceDep,
 ):
     """
     Сброс пароля по токену из письма.
     """
     try:
         await service.reset_password(data.token, data.new_password.get_secret_value())
-    except (InvalidTokenError, TokenExpiredError):
+    except InvalidTokenError, TokenExpiredError:
         raise BadRequestError(detail="Invalid or expired token") from None
     return {"message": "Пароль успешно изменен"}
-

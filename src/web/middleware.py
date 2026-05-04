@@ -77,7 +77,7 @@ class ErrorProcessor:
     @classmethod
     def log_exception(cls, exc: Exception, status_code: int) -> None:
         """Log exception based on status code."""
-        if status_code < 500: # noqa: PLR2004
+        if status_code < 500:  # noqa: PLR2004
             logger.info("Client-side error: status=%s error=%s", status_code, str(exc))
         else:
             logger.warning(

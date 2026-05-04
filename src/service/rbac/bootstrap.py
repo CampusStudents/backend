@@ -26,9 +26,9 @@ async def bootstrap_rbac(session: AsyncSession) -> None:
 
 
 async def _ensure_permissions(
-        session: AsyncSession,
-        subjects: list[str],
-        actions: list[str],
+    session: AsyncSession,
+    subjects: list[str],
+    actions: list[str],
 ) -> dict[tuple[str, str], Permission]:
     existing = await session.execute(select(Permission))
     permissions = {(p.subject, p.action): p for p in existing.scalars().all()}
@@ -52,7 +52,7 @@ async def _ensure_permissions(
 
 
 async def _ensure_roles(
-        session: AsyncSession, schema: dict[str, list[str]]
+    session: AsyncSession, schema: dict[str, list[str]]
 ) -> dict[str, Role]:
     role_names = set(schema.keys()) | {
         settings.rbac.public_role_name,
@@ -74,10 +74,10 @@ async def _ensure_roles(
 
 
 async def _assign_permissions(
-        session: AsyncSession,
-        permissions: dict[tuple[str, str], Permission],
-        roles: dict[str, Role],
-        schema: dict[str, list[str]],
+    session: AsyncSession,
+    permissions: dict[tuple[str, str], Permission],
+    roles: dict[str, Role],
+    schema: dict[str, list[str]],
 ) -> None:
     for role_name, scopes in schema.items():
         role = roles[role_name]
@@ -92,10 +92,10 @@ async def _assign_permissions(
 
 
 async def _resolve_permissions(
-        session: AsyncSession,
-        permissions: dict[tuple[str, str], Permission],
-        scopes: Iterable[str],
-        existing: list[Permission],
+    session: AsyncSession,
+    permissions: dict[tuple[str, str], Permission],
+    scopes: Iterable[str],
+    existing: list[Permission],
 ) -> list[Permission]:
     assigned_keys = {(permission.subject, permission.action) for permission in existing}
 
