@@ -49,7 +49,7 @@ jobs:
         run: pipx install --include-deps ansible
 
       - name: Install Ansible collections
-        run: ansible-galaxy collection install -r requirements.yaml
+        run: ansible-galaxy collection install -r ansible/requirements.yaml
 
       - name: Set up SSH
         shell: bash
