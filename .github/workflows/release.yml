@@ -49,7 +49,7 @@ jobs:
         run: pipx install --include-deps ansible
 
       - name: Install Ansible collections
-        run: ansible-galaxy collection install -r requirements.yml
+        run: ansible-galaxy collection install -r requirements.yaml
 
       - name: Set up SSH
         shell: bash
@@ -63,18 +63,22 @@ jobs:
 
       - name: Create inventory
         run: |
-          cat > ansible/inventory. int << EOF
+          cat > ansible/inventory.ini << EOF
           [ vms ]
-          ${{ secrets. VM_HOST }}
+          ${{ secrets.VM_HOST }}
           EOF
 
       - name: Run playbook
         run: |
           cd ansible
           ansible-playbook \
-          -t inventory. int \
-          -u ${{ secrets. VM_USER }} \
-          playbooks/test-playbook. yaml
+          -t inventory.ini \
+          -u ${{ secrets.VM_USER }} \
+          playbooks/-playbook.yaml
         env:
           ANSIBLE_HOST_KEY_CHECKING: "false"
           ANSIBLE_FORCE_COLOR: "true"
+          DOCKER_USER: ${{ vars.DOCKER_USER }}
+          DOCKER_IMAGE_NAME: ${{ vars.DOCKER_IMAGE_NAME }}
+          CI_COMMIT_TAG: ${{ needs.release.outputs.new_release_version }}
+          DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
