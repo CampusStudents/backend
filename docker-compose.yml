@@ -1,5 +1,5 @@
 
-x-backend-image: &backend-image campusback/app:latest
+x-backend-image: &backend-image royrenie/backend:v2
 x-frontend-image: &frontend-image nginx:1.29-alpine
 
 x-backend-base: &backend-base
