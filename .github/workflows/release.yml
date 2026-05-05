@@ -74,7 +74,7 @@ jobs:
           ansible-playbook \
           -t inventory.ini \
           -u ${{ secrets.VM_USER }} \
-          playbooks/-playbook.yaml
+          playbooks/build-image-playbook.yaml
         env:
           ANSIBLE_HOST_KEY_CHECKING: "false"
           ANSIBLE_FORCE_COLOR: "true"
