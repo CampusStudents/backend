@@ -3,7 +3,7 @@ on:
   push:
     branches:
       - main
-        - ci-cd-branch
+      - ci-cd-branch
 permissions:
   contents: read
 
