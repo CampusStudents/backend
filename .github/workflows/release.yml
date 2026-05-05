@@ -46,7 +46,7 @@ jobs:
           python-version: '3.13'
 
       - name: Install Ansible
-        run: pipx install -- include-deps ansible
+        run: pipx install --include-deps ansible
 
       - name: Install Ansible collections
         run: ansible-galaxy collection install -r requirements.yml
