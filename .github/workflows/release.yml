@@ -1,0 +1,35 @@
+name: Release app workflow
+on:
+  push:
+    branches:
+      - main
+        - ci-cd-branch
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+        contents: read
+        issues: write
+        pull-requests: write
+        id-token: write
+
+    outputs:
+        new_release_version: ${{ steps.semantic_relesase.outputs:}}
+
+    steps:
+        - name: Checkout repository
+          uses: actions/checkout@v4
+
+        - name: Set up Node.js
+          uses: actions/setup-node@v4
+          with:
+            node-version: "lts/*"
+
+        - name: Run semantic-release
+          id: semantic-release
+          uses: cycjinmy/semantic-release-action@v6
+          env:
+            GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
