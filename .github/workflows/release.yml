@@ -17,7 +17,7 @@ jobs:
         id-token: write
 
     outputs:
-        new_release_version: ${{ steps.semantic_relesase.outputs:}}
+        new_release_version: ${{ steps.semantic_release.outputs.new_release_version }}
 
     steps:
         - name: Checkout repository
