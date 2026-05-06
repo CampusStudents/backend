@@ -1,8 +1,8 @@
-- name: Build image playbook
+- name: Compose update playbook
   hosts: vms
   become: true
   vars:
-    back_image: royrenie/backend:v2
+    back_image: royrenie/backend:v3
     front_image: nginx:1.29-alpine
 
     #  Пути у меня
@@ -49,7 +49,7 @@
 
     - name: Read compose
       ansible.builtin.slurp:
-        src: "{{ local_compose_template }}"
+        src: "{{ remote_compose_file }}"
       register: yaml_data
       when: file_data.stat.exists
 

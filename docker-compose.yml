@@ -1,6 +1,6 @@
 
-x-backend-image: &backend-image royrenie/backend:v2
-x-frontend-image: &frontend-image nginx:1.29-alpine
+x-backend-image: &backend-image "royrenie/backend:v3"
+x-frontend-image: &frontend-image "nginx:1.29-alpine"
 
 x-backend-base: &backend-base
   image: *backend-image
