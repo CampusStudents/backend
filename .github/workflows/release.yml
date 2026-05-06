@@ -64,7 +64,7 @@ jobs:
       - name: Create inventory
         run: |
           cat > ansible/inventory.ini << EOF
-          [ vms ]
+          [vms]
           ${{ secrets.VM_HOST }}
           EOF
 
