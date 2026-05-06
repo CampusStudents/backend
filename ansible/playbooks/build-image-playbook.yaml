@@ -3,10 +3,10 @@
   become: true
   vars:
     remote_project_dir: "/home/user1/backend"
-    docker_user: "{{ lookup('ansible.builtin.env', 'DOCKER_USER') }}"
-    docker_pass: "{{ lookup('ansible.builtin.env', 'DOCKER_PASS') }}"
-    image_name: "{{ docker_user }}/{{ lookup('ansible.builtin.env', 'DOCKER_IMAGE_NAME', default='backend') }}"
-    image_tag: "{{ lookup('ansible.builtin.env', 'CI_COMMIT_TAG', default='v2') }}"
+    docker_user: "{{ lookup('env', 'DOCKER_USER') }}"
+    docker_pass: "{{ lookup('env', 'DOCKER_PASS') }}"
+    image_name: "{{ docker_user }}/{{ lookup('env', 'DOCKER_IMAGE_NAME') }}"
+    image_tag: "{{ lookup('env', 'CI_COMMIT_TAG', default='v2') }}"
 
 
 
