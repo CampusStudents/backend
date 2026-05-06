@@ -29,8 +29,8 @@
 
     - name: Copy nginx config to server
       ansible.builtin.copy:
-        src: ../../nginx
-        dest: "{{ remote_project_dir }}/nginx"
+        src: ../../nginx/
+        dest: "{{ remote_project_dir }}/nginx/"
         mode: '0755'
 
 

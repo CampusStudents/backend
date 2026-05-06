@@ -2,7 +2,7 @@
   hosts: vms
   become: true
   vars:
-    remote_project_dir: "{{ llokup('env', 'REMOTE_PROJECT_DIR')}}"
+    remote_project_dir: "{{ lookup('env', 'REMOTE_PROJECT_DIR')}}"
     docker_user: "{{ lookup('env', 'DOCKER_USER') }}"
     docker_pass: "{{ lookup('env', 'DOCKER_PASS') }}"
     image_name: "{{ docker_user }}/{{ lookup('env', 'DOCKER_IMAGE_NAME') }}"
@@ -14,7 +14,7 @@
     - name: Copy src code
       ansible.posix.synchronize:
         src: ../../../
-        dest: "{{ remote_project_dir }}/"
+        dest: "{{ remote_project_dir }}"
         rsync_opts:
           - "--exclude=.venv"
           - "--exclude=.git"
