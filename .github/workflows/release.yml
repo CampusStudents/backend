@@ -59,7 +59,7 @@ jobs:
           touch ~/.ssh/id_ed25519
           echo -e "${{ secrets.SSH_PRIVATE_KEY_B64 }}" | base64 -d | tr -d '\r' > ~/.ssh/id_ed25519
           chmod 700 ~/.ssh/id_ed25519
-          echo -e "${{ secrets. SSH_KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
+          echo -e "${{ secrets.SSH_KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
 
       - name: Create inventory
         run: |
@@ -72,9 +72,14 @@ jobs:
         run: |
           cd ansible
           ansible-playbook \
-          -t inventory.ini \
+          -i inventory.ini \
           -u ${{ secrets.VM_USER }} \
           playbooks/build-image-playbook.yaml
+          
+          ansible-playbook \
+          -i inventory.ini \
+          -u ${{ secrets.VM_USER }} \
+          playbooks/compose-update-playbook.yaml
         env:
           ANSIBLE_HOST_KEY_CHECKING: "false"
           ANSIBLE_FORCE_COLOR: "true"
