@@ -54,29 +54,12 @@ jobs:
       - name: Set up SSH
         shell: bash
         run: |
-          # Запускаем ssh-agent
-          eval "$(ssh-agent -s)"
-
-          # Создаём директорию
+          eval 'ssh-agent -s'
           mkdir -p ~/.ssh/
-
-          # Декодируем приватный ключ (без переносов строк!)
-          echo "${{ secrets.SSH_PRIVATE_KEY_B64 }}" | base64 -d > ~/.ssh/id_ed25519
-
-          # Правильные права (ОБЯЗАТЕЛЬНО!)
-          chmod 600 ~/.ssh/id_ed25519
-
-          # Добавляем ключ в агент
-          ssh-add ~/.ssh/id_ed25519
-
-          # Добавляем known_hosts (если не добавлен)
-          if [ ! -f ~/.ssh/known_hosts ]; then
-            ssh-keyscan -H ${{ secrets.VM_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
-          fi
-
-          # Дебаг: покажи, что ключ добавлен (не показывай сам ключ!)
-          echo "✅ SSH key loaded:"
-          ssh-add -l
+          touch ~/.ssh/id_ed25519
+          echo -e "${{ secrets.SSH_PRIVATE_KEY_B64 }}" | base64 -d | tr -d '\r' > ~/.ssh/id_ed25519
+          chmod 700 ~/.ssh/id_ed25519
+          echo -e "${{ secrets.SSH_KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
         env:
           SSH_AUTH_SOCK: /tmp/ssh_agent.sock
 
