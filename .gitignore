@@ -216,3 +216,7 @@ __marimo__/
 .streamlit/secrets.toml
 
 scripts
+ansible/inventory.ini
+src/certs/jwt-private.pem
+src/certs/jwt-public.pem
+serc
