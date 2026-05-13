@@ -1,51 +1,52 @@
-- name: VM initialization playbook
-  hosts: vms
+- name: Initialize VM
+  hosts: vm
   become: true
-  vars:
-    container_name: backend
+  gather_facts: true
+
   tasks:
-    - name: Install docker
-      register: docker_install_output
-      changed_when: docker_install_output.rc != 0
-      ansible.builtin.shell:
-        executable: /bin/bash
-        cmd: |
-          set -o pipefail
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
 
-          sudo apt remove $(dpkg --get-selections docker.io docker-compose docker-compose-v2 docker-doc podman-docker containerd runc | cut -f1) -y
+    - name: Install required packages
+      ansible.builtin.apt:
+        name:
+          - docker.io
+          - docker-compose-plugin
+          - python3-pip
+          - rsync
+          - curl
+        state: present
 
-          # Add Docker's official GPG key:
-          sudo apt update -y
+    - name: Add user to docker group
+      ansible.builtin.user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: true
 
-          sudo apt install ca-certificates curl -y
-          sudo install -m 0755 -d /etc/apt/keyrings
-          sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
-          sudo chmod a+r /etc/apt/keyrings/docker.asc
+    - name: Start and enable Docker service
+      ansible.builtin.systemd:
+        name: docker
+        state: started
+        enabled: true
 
-          # Add the repository to Apt sources:
-          sudo tee /etc/apt/sources.list.d/docker.sources <<EOF
-          Types: deb
-          URIs: https://download.docker.com/linux/ubuntu
-          Suites: $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}")
-          Components: stable
-          Architectures: $(dpkg --print-architecture)
-          Signed-By: /etc/apt/keyrings/docker.asc
-          EOF
+    - name: Verify Docker installation
+      ansible.builtin.command:
+        cmd: docker --version
+      register: docker_version
+      changed_when: false
 
-          sudo apt update -y
+    - name: Display Docker version
+      ansible.builtin.debug:
+        msg: "{{ docker_version.stdout }}"
 
-          sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
-    - name: Test docker install
-      community.docker.docker_container:
-        name: "{{ container_name }}"
-        image: hello-world
+    - name: Verify Docker Compose installation
+      ansible.builtin.command:
+        cmd: docker-compose --version
+      register: compose_version
+      changed_when: false
 
-    - name: Remove docker install
-      community.docker.docker_container:
-        name: "{{ container_name }}"
-        state: absent
-
-    - name: Install rsync
-      ansible.builtin.command: sudo apt install rsync -y
-      register: rsync_install_output
-      changed_when: rsync_install_output.rc != 0
+    - name: Display Docker Compose version
+      ansible.builtin.debug:
+        msg: "{{ compose_version.stdout }}"
