@@ -22,7 +22,7 @@ jobs:
         ansible-playbook \
           -i inventory.ini \
           -u ${{ secrets.VM_USER }} \
-          playbooks/init-vm-playbook.yaml
+          playbooks/docker-install-playbook.yaml
       env:
         ANSIBLE_HOST_KEY_CHECKING: "false"
         ANSIBLE_FORCE_COLOR: "true"
