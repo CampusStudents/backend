@@ -2,6 +2,10 @@ from src.db.db_helper import db_helper
 from src.db.repository.application import ApplicationRepository
 from src.db.repository.city import CityRepository
 from src.db.repository.event import EventRepository
+from src.db.repository.image import (
+    EventImageUrlRepository,
+    OrganizationImageUrlRepository,
+)
 from src.db.repository.organization import OrganizationRepository
 from src.db.repository.organization_request import OrganizationRequestRepository
 from src.db.repository.portfolio_item import PortfolioItemRepository
@@ -38,8 +42,16 @@ def get_event_repository() -> EventRepository:
     return EventRepository()
 
 
+def get_event_image_url_repository() -> EventImageUrlRepository:
+    return EventImageUrlRepository()
+
+
 def get_organization_repository() -> OrganizationRepository:
     return OrganizationRepository()
+
+
+def get_organization_image_url_repository() -> OrganizationImageUrlRepository:
+    return OrganizationImageUrlRepository()
 
 
 def get_organization_request_repository() -> OrganizationRequestRepository:

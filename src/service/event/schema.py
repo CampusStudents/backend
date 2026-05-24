@@ -45,10 +45,13 @@ class CreateEventSchema(EventBaseSchema):
 class UpdateEventSchema(BaseModel):
     organizer_id: UUID | None = None
     city_id: UUID | None = None
-    title: Annotated[
-        str,
-        StringConstraints(strip_whitespace=True, min_length=1, max_length=255),
-    ] | None = None
+    title: (
+        Annotated[
+            str,
+            StringConstraints(strip_whitespace=True, min_length=1, max_length=255),
+        ]
+        | None
+    ) = None
     description: NonEmptyStr | None = None
     date_start: datetime | None = None
     date_end: datetime | None = None
@@ -73,5 +76,11 @@ class EventOrganizerDTO(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class EventImageUrlDTO(EntityDTO):
+    event_id: UUID
+    url: str
+
+
 class EventDTO(EventBaseSchema, EntityDTO):
     organizer: EventOrganizerDTO | None = None
+    images: list[EventImageUrlDTO] = Field(default_factory=list)

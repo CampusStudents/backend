@@ -5,6 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
+    "aiobotocore>=2.26.0",
     "aiosmtplib>=5.1.0",
     "alembic>=1.18.4",
     "asyncpg>=0.31.0",
@@ -15,6 +16,7 @@ dependencies = [
     "jinja2>=3.1.6",
     "pydantic-settings>=2.13.1",
     "pydantic[email]>=2.12.5",
+    "python-multipart>=0.0.20",
     "pyjwt[crypto]>=2.12.1",
     "slowapi>=0.1.9",
     "sqlalchemy[asyncio]>=2.0.48",

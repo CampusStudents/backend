@@ -179,6 +179,16 @@ class EmailConfig(BaseModel):
     from_email: str = "campus@mail.ru"
 
 
+class AWSConfig(BaseModel):
+    access_key: str = ""
+    secret_key: str = ""
+    endpoint_url: str = ""
+    bucket_name: str = ""
+    domain: str = ""
+    folder: str | None = None
+    image_white_list: list[str] = ["jpg", "jpeg", "png", "webp"]
+
+
 class RateLimitConfig(BaseModel):
     auth_login: str = "5/minute"
     auth_register: str = "3/minute"
@@ -235,6 +245,7 @@ class Settings(BaseSettings):
     auth: AuthConfig = AuthConfig()
     rbac: RBACConfig
     email: EmailConfig = EmailConfig()
+    aws: AWSConfig = AWSConfig()
     rate_limit: RateLimitConfig = RateLimitConfig()
     db: DatabaseConfig
     app_url: str = "127.0.0.1:8000"

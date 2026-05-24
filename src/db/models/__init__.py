@@ -1,6 +1,7 @@
 from .application import Application
 from .base import Base
 from .event import Event
+from .image import EventImageUrl, OrganizationImageUrl
 from .library import (
     City,
     Skill,
@@ -25,7 +26,9 @@ __all__ = [
     "Base",
     "City",
     "Event",
+    "EventImageUrl",
     "Organization",
+    "OrganizationImageUrl",
     "OrganizationRequest",
     "Permission",
     "PortfolioItem",
