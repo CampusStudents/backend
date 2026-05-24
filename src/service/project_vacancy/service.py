@@ -44,11 +44,15 @@ class ProjectVacancyService:
     ) -> list[ProjectVacancyDTO]:
         async with self.uow as uow:
             await self._ensure_project_exists(uow.session, project_id)
-            repository_filters = filters.to_repository_filters()
-            repository_filters["project_id"] = project_id
-            vacancies = await self.repository.get_multi_out(
+            vacancies = await self.repository.get_by_project_id(
                 uow.session,
-                repository_filters,
+                project_id,
+                {
+                    "skill_id": filters.skill_id,
+                    "team_role_ids": filters.team_role_id__in,
+                    "limit": filters.limit,
+                    "offset": filters.offset,
+                },
             )
             return [ProjectVacancyDTO.model_validate(vacancy) for vacancy in vacancies]
 

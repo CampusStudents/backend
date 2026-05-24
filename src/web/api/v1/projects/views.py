@@ -22,11 +22,13 @@ from src.service.project_vacancy.schema import (
     ProjectVacancyFilter,
     UpdateProjectVacancySchema,
 )
+from src.service.team_member.schema import TeamMemberDTO
 from src.service.user.schema import UserDTO
 from src.web.api.dependencies import (
     ApplicationServiceDep,
     ProjectServiceDep,
     ProjectVacancyServiceDep,
+    TeamMemberServiceDep,
     get_current_active_user,
     get_current_active_user_with_profile,
 )
@@ -91,6 +93,18 @@ async def delete_project(
     ),
 ) -> None:
     await service.delete(project_id, user)
+
+
+@router.get("/{project_id}/team")
+async def get_project_team(
+    project_id: UUID,
+    service: TeamMemberServiceDep,
+    _: UserDTO = Security(
+        get_current_active_user_with_profile,
+        scopes=[Scope.TEAM_MEMBERS_LIST],
+    ),
+) -> list[TeamMemberDTO]:
+    return await service.get_by_project(project_id)
 
 
 @router.get(

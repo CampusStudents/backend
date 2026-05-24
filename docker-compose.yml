@@ -1,5 +1,5 @@
 
-x-backend-image: &backend-image campusback/app:latest
+x-backend-image: &backend-image royrenie/backend:v2
 x-frontend-image: &frontend-image nginx:1.29-alpine
 
 x-backend-base: &backend-base
@@ -9,6 +9,7 @@ x-backend-base: &backend-base
   environment:
     APP__DB__HOST: pg
     APP__RUN__HOST: 0.0.0.0
+    APP__EMAIL__SMTP_HOST: maildev
 
 services:
   alembic:

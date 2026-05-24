@@ -14,3 +14,9 @@ class EventStatus(StrEnum):
     ONGOING = "ongoing"
     COMPLETED = "completed"
     CANCELLED = "cancelled"
+
+
+class OrganizationRequestStatus(StrEnum):
+    PENDING = "pending"
+    APPROVED = "approved"
+    REJECTED = "rejected"
