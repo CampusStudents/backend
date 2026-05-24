@@ -23,10 +23,13 @@ class CreateOrganizationSchema(OrganizationBaseSchema):
 
 class UpdateOrganizationSchema(BaseModel):
     owner_user_id: UUID | None = None
-    name: Annotated[
-        str,
-        StringConstraints(strip_whitespace=True, min_length=1, max_length=255),
-    ] | None = None
+    name: (
+        Annotated[
+            str,
+            StringConstraints(strip_whitespace=True, min_length=1, max_length=255),
+        ]
+        | None
+    ) = None
     description: str | None = None
     contact_email: EmailStr | None = None
 
@@ -43,5 +46,11 @@ class OrganizationOwnerDTO(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class OrganizationImageUrlDTO(EntityDTO):
+    organization_id: UUID
+    url: str
+
+
 class OrganizationDTO(OrganizationBaseSchema, EntityDTO):
     owner: OrganizationOwnerDTO | None = None
+    images: list[OrganizationImageUrlDTO] = Field(default_factory=list)

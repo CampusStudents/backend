@@ -12,6 +12,7 @@ from .base import Base
 from .mixins import TimestampMixin, UUIDPkMixin
 
 if TYPE_CHECKING:
+    from .image import EventImageUrl
     from .library import City
     from .organization import Organization
 
@@ -51,3 +52,8 @@ class Event(UUIDPkMixin, TimestampMixin, Base):
 
     city: Mapped[City | None] = relationship(lazy="joined")
     organizer: Mapped[Organization | None] = relationship(back_populates="events")
+    images: Mapped[list[EventImageUrl]] = relationship(
+        back_populates="event",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+    )

@@ -1,7 +1,9 @@
 from src.db.dependencies import (
     get_application_repository,
     get_city_repository,
+    get_event_image_url_repository,
     get_event_repository,
+    get_organization_image_url_repository,
     get_organization_repository,
     get_organization_request_repository,
     get_portfolio_item_repository,
@@ -65,6 +67,7 @@ def get_event_service() -> EventService:
         get_event_repository(),
         get_city_repository(),
         get_organization_repository(),
+        get_event_image_url_repository(),
     )
 
 
@@ -84,6 +87,7 @@ def get_organization_service() -> OrganizationService:
         get_organization_repository(),
         get_user_repository(),
         get_role_repository(),
+        get_organization_image_url_repository(),
     )
 
 
