@@ -58,6 +58,10 @@ class ApiV1Prefix(BaseModel):
     team_roles: str = "/team-roles"
     universities: str = "/universities"
     projects: str = "/projects"
+    recommendations: str = "/recommendations"
+    events: str = "/events"
+    organizations: str = "/organizations"
+    organization_requests: str = "/organization-requests"
 
 
 class ApiPrefix(BaseModel):
@@ -82,11 +86,18 @@ class RBACConfig(BaseModel):
         "cities",
         "skills",
         "team_roles",
+        "team_members",
         "universities",
         "user_profiles",
         "applications",
         "projects",
         "project_vacancies",
+        "recommendations",
+        "events",
+        "organizations",
+        "organization_requests",
+        "portfolio_items",
+        "user_skills",
     ]
     initial_actions: list[str] = [
         "detail",
@@ -94,9 +105,15 @@ class RBACConfig(BaseModel):
         "create",
         "update",
         "delete",
+        "vacancies",
     ]
     initial_permission_schema: dict[str, list[str]] = {
         "admin": ["*"],
+        "organizer": [
+            "events:create",
+            "events:update",
+            "events:delete",
+        ],
         "public": [
             "auth:login",
             "auth:register",
@@ -117,6 +134,7 @@ class RBACConfig(BaseModel):
             "skills:detail",
             "team_roles:list",
             "team_roles:detail",
+            "team_members:list",
             "universities:list",
             "universities:detail",
             "user_profiles:detail",
@@ -136,12 +154,23 @@ class RBACConfig(BaseModel):
             "project_vacancies:create",
             "project_vacancies:update",
             "project_vacancies:delete",
+            "recommendations:vacancies",
+            "organization_requests:create",
+            "organization_requests:list_own",
+            "portfolio_items:list",
+            "portfolio_items:detail",
+            "portfolio_items:create",
+            "portfolio_items:update",
+            "portfolio_items:delete",
+            "user_skills:list",
+            "user_skills:update",
         ],
     }
     admin_email: str = "admin@example.com"
     admin_password: str = "admin"
     public_role_name: str = "public"
     admin_role_name: str = "admin"
+    organizer_role_name: str = "organizer"
 
 
 class EmailConfig(BaseModel):

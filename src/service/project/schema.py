@@ -67,6 +67,7 @@ class ProjectFilter(BaseFilter):
     format__in: list[ProjectFormat] | None = Field(default=None, alias="format")
     status__in: list[ProjectStatus] | None = Field(default=None, alias="status")
     city_id__in: list[UUID] | None = Field(default=None, alias="city_id")
+    event_id__in: list[UUID] | None = Field(default=None, alias="event_id")
 
 
 class ProjectDTO(ProjectBaseSchema, EntityDTO):

@@ -10,6 +10,7 @@ from .library import (
     user_skills,
 )
 from .organization import Organization
+from .organization_request import OrganizationRequest
 from .portfolio_item import PortfolioItem
 from .profile import UserProfile
 from .project import Project
@@ -25,6 +26,7 @@ __all__ = [
     "City",
     "Event",
     "Organization",
+    "OrganizationRequest",
     "Permission",
     "PortfolioItem",
     "Project",
