@@ -84,3 +84,6 @@ class EventImageUrlDTO(EntityDTO):
 class EventDTO(EventBaseSchema, EntityDTO):
     organizer: EventOrganizerDTO | None = None
     images: list[EventImageUrlDTO] = Field(default_factory=list)
+
+class EventShortDTO(EventBaseSchema, EntityDTO):
+    pass

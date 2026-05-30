@@ -1,5 +1,5 @@
 from sqlalchemy import Select
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import selectinload, joinedload
 
 from src.db.models import Project
 from src.db.repository.base import SQLAlchemyRepository
@@ -12,4 +12,4 @@ class ProjectRepository(SQLAlchemyRepository):
         self,
         query: Select[tuple[Project]],
     ) -> Select[tuple[Project]]:
-        return query.options(selectinload(Project.vacancies))
+        return query.options(selectinload(Project.vacancies), joinedload(Project.event))
