@@ -36,26 +36,64 @@ from src.web.api.dependencies import (
 router = APIRouter(prefix=settings.api.v1.projects)
 
 
-@router.get(
-    "/",
-    dependencies=[Security(get_current_active_user, scopes=[Scope.PROJECTS_LIST])],
-)
+@router.get("/")
 async def get_projects(
     service: ProjectServiceDep,
     filters: Annotated[ProjectFilter, Query()],
+    user: UserDTO = Security(
+        get_current_active_user,
+        scopes=[Scope.PROJECTS_LIST],
+    ),
 ) -> list[ProjectDTO]:
-    return await service.get_all(filters)
+    return await service.get_all(filters, user)
 
 
-@router.get(
-    "/{project_id}",
-    dependencies=[Security(get_current_active_user, scopes=[Scope.PROJECTS_DETAIL])],
-)
+@router.get("/favorites")
+async def get_favorite_projects(
+    service: ProjectServiceDep,
+    filters: Annotated[ProjectFilter, Query()],
+    user: UserDTO = Security(
+        get_current_active_user,
+        scopes=[Scope.PROJECTS_FAVORITES_LIST],
+    ),
+) -> list[ProjectDTO]:
+    return await service.get_favorite_projects(filters, user)
+
+
+@router.get("/{project_id}")
 async def get_project(
     project_id: UUID,
     service: ProjectServiceDep,
+    user: UserDTO = Security(
+        get_current_active_user,
+        scopes=[Scope.PROJECTS_DETAIL],
+    ),
 ) -> ProjectDTO:
-    return await service.get_by_id(project_id)
+    return await service.get_by_id(project_id, user)
+
+
+@router.post("/{project_id}/favorite", status_code=status.HTTP_204_NO_CONTENT)
+async def add_project_to_favorites(
+    project_id: UUID,
+    service: ProjectServiceDep,
+    user: UserDTO = Security(
+        get_current_active_user,
+        scopes=[Scope.PROJECTS_FAVORITES_UPDATE],
+    ),
+) -> None:
+    await service.add_to_favorites(project_id, user)
+
+
+@router.delete("/{project_id}/favorite", status_code=status.HTTP_204_NO_CONTENT)
+async def remove_project_from_favorites(
+    project_id: UUID,
+    service: ProjectServiceDep,
+    user: UserDTO = Security(
+        get_current_active_user,
+        scopes=[Scope.PROJECTS_FAVORITES_UPDATE],
+    ),
+) -> None:
+    await service.remove_from_favorites(project_id, user)
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED)

@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from .application import Application
     from .library import Skill
     from .profile import UserProfile
+    from .project_favorite import ProjectFavorite
     from .rbac import Role
 
 
@@ -43,4 +44,9 @@ class User(UUIDPkMixin, TimestampMixin, Base):
 
     applications: Mapped[list[Application]] = relationship(
         back_populates="applicant",
+    )
+    favorite_projects: Mapped[list[ProjectFavorite]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
     )

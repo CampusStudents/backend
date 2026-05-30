@@ -27,7 +27,6 @@ organization_request_status = sa.Enum(
 
 def upgrade() -> None:
     """Upgrade schema."""
-    organization_request_status.create(op.get_bind(), checkfirst=True)
     op.create_unique_constraint(
         op.f("uq_organizations_name"),
         "organizations",

@@ -7,6 +7,7 @@ from src.db.dependencies import (
     get_organization_repository,
     get_organization_request_repository,
     get_portfolio_item_repository,
+    get_project_favorite_repository,
     get_project_repository,
     get_project_vacancy_repository,
     get_refresh_session_repository,
@@ -121,6 +122,7 @@ def get_project_service() -> ProjectService:
     return ProjectService(
         get_unit_of_work(),
         get_project_repository(),
+        get_project_favorite_repository(),
         get_city_repository(),
         get_event_repository(),
         get_application_repository(),

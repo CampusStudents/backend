@@ -11,6 +11,7 @@ from src.db.repository.application import ApplicationRepository
 from src.db.repository.city import CityRepository
 from src.db.repository.event import EventRepository
 from src.db.repository.project import ProjectRepository
+from src.db.repository.project_favorite import ProjectFavoriteRepository
 from src.db.unit_of_work import UnitOfWork
 from src.service.user.schema import UserDTO
 
@@ -36,32 +37,52 @@ ALLOWED_PROJECT_STATUS_TRANSITIONS = {
 
 
 class ProjectService:
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         uow: UnitOfWork,
         repository: ProjectRepository,
+        favorite_repository: ProjectFavoriteRepository,
         city_repository: CityRepository,
         event_repository: EventRepository,
         application_repository: ApplicationRepository,
     ):
         self.uow = uow
         self.repository = repository
+        self.favorite_repository = favorite_repository
         self.city_repository = city_repository
         self.event_repository = event_repository
         self.application_repository = application_repository
 
-    async def get_all(self, filters: ProjectFilter) -> list[ProjectDTO]:
+    async def get_all(self, filters: ProjectFilter, user: UserDTO) -> list[ProjectDTO]:
         async with self.uow as uow:
             projects = await self.repository.get_multi_out(
                 uow.session,
                 filters.to_repository_filters(),
             )
-            return [ProjectDTO.model_validate(project) for project in projects]
+            return await self._to_project_dtos(uow.session, projects, user.id)
 
-    async def get_by_id(self, project_id: UUID) -> ProjectDTO:
+    async def get_by_id(self, project_id: UUID, user: UserDTO) -> ProjectDTO:
         async with self.uow as uow:
             project = await self._get_by_id_or_raise(uow.session, project_id)
-            return ProjectDTO.model_validate(project)
+            return await self._to_project_dto(uow.session, project, user.id)
+
+    async def get_favorite_projects(
+        self,
+        filters: ProjectFilter,
+        user: UserDTO,
+    ) -> list[ProjectDTO]:
+        async with self.uow as uow:
+            projects = await self.repository.get_favorites(
+                uow.session,
+                user.id,
+                filters.to_repository_filters(),
+            )
+            return [
+                ProjectDTO.model_validate(project).model_copy(
+                    update={"is_favorite": True}
+                )
+                for project in projects
+            ]
 
     async def create(self, data: CreateProjectSchema, owner: UserDTO) -> ProjectDTO:
         async with self.uow as uow:
@@ -100,13 +121,33 @@ class ProjectService:
                 data_to_update,
             )
             await uow.commit()
-            return ProjectDTO.model_validate(updated_project)
+            return await self._to_project_dto(uow.session, updated_project, user.id)
 
     async def delete(self, project_id: UUID, user: UserDTO) -> None:
         async with self.uow as uow:
             project = await self._get_by_id_or_raise(uow.session, project_id)
             self._ensure_owner_or_admin(project.owner_id, user)
             await self.repository.delete_by_id(uow.session, project_id)
+            await uow.commit()
+
+    async def add_to_favorites(self, project_id: UUID, user: UserDTO) -> None:
+        async with self.uow as uow:
+            await self._get_by_id_or_raise(uow.session, project_id)
+            await self.favorite_repository.create_if_not_exists(
+                uow.session,
+                user.id,
+                project_id,
+            )
+            await uow.commit()
+
+    async def remove_from_favorites(self, project_id: UUID, user: UserDTO) -> None:
+        async with self.uow as uow:
+            await self._get_by_id_or_raise(uow.session, project_id)
+            await self.favorite_repository.delete(
+                uow.session,
+                user.id,
+                project_id,
+            )
             await uow.commit()
 
     async def _get_by_id_or_raise(
@@ -151,7 +192,9 @@ class ProjectService:
             return
         allowed_statuses = ALLOWED_PROJECT_STATUS_TRANSITIONS[project.status]
         if target_status not in allowed_statuses:
-            msg = f"Cannot change project status from {project.status} to {target_status}"
+            msg = (
+                f"Cannot change project status from {project.status} to {target_status}"
+            )
             raise BadRequestError(msg)
         if target_status == ProjectStatus.SELECTION_COMPLETED:
             await self._ensure_vacancies_filled(session, project)
@@ -169,6 +212,39 @@ class ProjectService:
                     "do not have enough accepted participants"
                 )
                 raise BadRequestError(msg)
+
+    async def _to_project_dtos(
+        self,
+        session: AsyncSession,
+        projects,
+        user_id: UUID,
+    ) -> list[ProjectDTO]:
+        favorite_project_ids = await self.favorite_repository.get_project_ids(
+            session,
+            user_id,
+            [project.id for project in projects],
+        )
+        return [
+            ProjectDTO.model_validate(project).model_copy(
+                update={"is_favorite": project.id in favorite_project_ids}
+            )
+            for project in projects
+        ]
+
+    async def _to_project_dto(
+        self,
+        session: AsyncSession,
+        project,
+        user_id: UUID,
+    ) -> ProjectDTO:
+        is_favorite = await self.favorite_repository.exists(
+            session,
+            user_id,
+            project.id,
+        )
+        return ProjectDTO.model_validate(project).model_copy(
+            update={"is_favorite": is_favorite}
+        )
 
     def _ensure_owner_or_admin(
         self,
