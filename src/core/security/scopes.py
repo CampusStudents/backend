@@ -65,6 +65,8 @@ class Scope:
     PROJECTS_CREATE = scope("projects", "create")
     PROJECTS_UPDATE = scope("projects", "update")
     PROJECTS_DELETE = scope("projects", "delete")
+    PROJECTS_FAVORITES_LIST = scope("projects", "favorites_list")
+    PROJECTS_FAVORITES_UPDATE = scope("projects", "favorites_update")
     PROJECT_VACANCIES_LIST = scope("project_vacancies", "list")
     PROJECT_VACANCIES_DETAIL = scope("project_vacancies", "detail")
     PROJECT_VACANCIES_CREATE = scope("project_vacancies", "create")

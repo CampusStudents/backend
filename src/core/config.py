@@ -106,6 +106,8 @@ class RBACConfig(BaseModel):
         "update",
         "delete",
         "vacancies",
+        "favorites_list",
+        "favorites_update",
     ]
     initial_permission_schema: dict[str, list[str]] = {
         "admin": ["*"],
@@ -149,6 +151,8 @@ class RBACConfig(BaseModel):
             "projects:create",
             "projects:update",
             "projects:delete",
+            "projects:favorites_list",
+            "projects:favorites_update",
             "project_vacancies:list",
             "project_vacancies:detail",
             "project_vacancies:create",

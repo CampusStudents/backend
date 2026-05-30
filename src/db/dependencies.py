@@ -10,6 +10,7 @@ from src.db.repository.organization import OrganizationRepository
 from src.db.repository.organization_request import OrganizationRequestRepository
 from src.db.repository.portfolio_item import PortfolioItemRepository
 from src.db.repository.project import ProjectRepository
+from src.db.repository.project_favorite import ProjectFavoriteRepository
 from src.db.repository.project_vacancy import ProjectVacancyRepository
 from src.db.repository.refresh_session import RefreshSessionRepository
 from src.db.repository.role import RoleRepository
@@ -64,6 +65,10 @@ def get_portfolio_item_repository() -> PortfolioItemRepository:
 
 def get_project_repository() -> ProjectRepository:
     return ProjectRepository()
+
+
+def get_project_favorite_repository() -> ProjectFavoriteRepository:
+    return ProjectFavoriteRepository()
 
 
 def get_project_vacancy_repository() -> ProjectVacancyRepository:

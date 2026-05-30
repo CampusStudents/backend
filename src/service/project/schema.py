@@ -74,4 +74,4 @@ class ProjectFilter(BaseFilter):
 class ProjectDTO(ProjectBaseSchema, EntityDTO):
     owner_id: UUID | None
     event: EventShortDTO | None = None
-
+    is_favorite: bool = False
