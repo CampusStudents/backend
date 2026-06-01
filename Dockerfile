@@ -35,4 +35,10 @@ COPY gunicorn_config.py ./gunicorn_config.py
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev
 
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends curl && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY --from=ghcr.io/astral-sh/uv:0.10.9 /uv /bin/uv
+
 CMD ["gunicorn", "src.main:main_app", "-c", "gunicorn_config.py"]
