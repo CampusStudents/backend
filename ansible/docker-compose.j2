@@ -1,6 +1,5 @@
-
-x-backend-image: &backend-image "royrenie/backend:v3"
-x-frontend-image: &frontend-image "nginx:1.29-alpine"
+x-backend-image: &backend-image "{{ back_image }}"
+x-frontend-image: &frontend-image "{{ front_image }}"
 
 x-backend-base: &backend-base
   image: *backend-image
@@ -9,7 +8,6 @@ x-backend-base: &backend-base
   environment:
     APP__DB__HOST: pg
     APP__RUN__HOST: 0.0.0.0
-    APP__EMAIL__SMTP_HOST: maildev
 
 services:
   alembic:

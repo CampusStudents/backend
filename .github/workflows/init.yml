@@ -1,0 +1,34 @@
+name: Init VM
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  init:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: CampusStudents/backend/.github/actions/ansible-setup@ci-cd-branch
+      with:
+        ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY_B64 }}
+        known_hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
+        vm_host: ${{ secrets.VM_HOST }}
+
+    - name: Setup VM
+      run: |
+        cd ansible
+        ansible-playbook \
+          -i inventory.ini \
+          -u ${{ secrets.VM_USER }} \
+          playbooks/docker-install-playbook.yaml
+      env:
+        ANSIBLE_HOST_KEY_CHECKING: "false"
+        ANSIBLE_FORCE_COLOR: "true"
+    
+    - name: Cleanup Workspace
+      if: always()
+      run: |
+        rm -rf ~/.ssh/
+        rm ~/.env
