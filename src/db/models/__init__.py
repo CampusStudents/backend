@@ -1,6 +1,7 @@
 from .application import Application
 from .base import Base
 from .event import Event
+from .image import EventImageUrl, OrganizationImageUrl
 from .library import (
     City,
     Skill,
@@ -10,9 +11,11 @@ from .library import (
     user_skills,
 )
 from .organization import Organization
+from .organization_request import OrganizationRequest
 from .portfolio_item import PortfolioItem
 from .profile import UserProfile
 from .project import Project
+from .project_favorite import ProjectFavorite
 from .project_vacancy import ProjectVacancy
 from .rbac import Permission, Role, role_permissions, user_roles
 from .refresh_session import RefreshSession
@@ -24,10 +27,14 @@ __all__ = [
     "Base",
     "City",
     "Event",
+    "EventImageUrl",
     "Organization",
+    "OrganizationImageUrl",
+    "OrganizationRequest",
     "Permission",
     "PortfolioItem",
     "Project",
+    "ProjectFavorite",
     "ProjectVacancy",
     "RefreshSession",
     "Role",

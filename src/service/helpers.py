@@ -14,6 +14,8 @@ class ShortDTO(BaseModel):
     id: UUID
     name: str
 
+    model_config = ConfigDict(from_attributes=True)
+
 
 class EntityDTO(BaseModel):
     id: UUID

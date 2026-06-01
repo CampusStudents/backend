@@ -4,42 +4,90 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.exceptions.service.base import BadRequestError, NoAccessError
 from src.core.exceptions.service.city import CityNotFoundError
+from src.core.exceptions.service.event import EventNotFoundError
 from src.core.exceptions.service.project import ProjectNotFoundError
+from src.db.choices import ApplicationStatus, ProjectStatus
+from src.db.repository.application import ApplicationRepository
 from src.db.repository.city import CityRepository
+from src.db.repository.event import EventRepository
 from src.db.repository.project import ProjectRepository
+from src.db.repository.project_favorite import ProjectFavoriteRepository
 from src.db.unit_of_work import UnitOfWork
 from src.service.user.schema import UserDTO
 
 from .schema import CreateProjectSchema, ProjectDTO, ProjectFilter, UpdateProjectSchema
 
+ALLOWED_PROJECT_STATUS_TRANSITIONS = {
+    ProjectStatus.NEW: {
+        ProjectStatus.SELECTION_COMPLETED,
+        ProjectStatus.STARTED,
+        ProjectStatus.CANCELED,
+    },
+    ProjectStatus.SELECTION_COMPLETED: {
+        ProjectStatus.STARTED,
+        ProjectStatus.CANCELED,
+    },
+    ProjectStatus.STARTED: {
+        ProjectStatus.ENDED,
+        ProjectStatus.CANCELED,
+    },
+    ProjectStatus.ENDED: set(),
+    ProjectStatus.CANCELED: set(),
+}
+
 
 class ProjectService:
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         uow: UnitOfWork,
         repository: ProjectRepository,
+        favorite_repository: ProjectFavoriteRepository,
         city_repository: CityRepository,
+        event_repository: EventRepository,
+        application_repository: ApplicationRepository,
     ):
         self.uow = uow
         self.repository = repository
+        self.favorite_repository = favorite_repository
         self.city_repository = city_repository
+        self.event_repository = event_repository
+        self.application_repository = application_repository
 
-    async def get_all(self, filters: ProjectFilter) -> list[ProjectDTO]:
+    async def get_all(self, filters: ProjectFilter, user: UserDTO) -> list[ProjectDTO]:
         async with self.uow as uow:
             projects = await self.repository.get_multi_out(
                 uow.session,
                 filters.to_repository_filters(),
             )
-            return [ProjectDTO.model_validate(project) for project in projects]
+            return await self._to_project_dtos(uow.session, projects, user.id)
 
-    async def get_by_id(self, project_id: UUID) -> ProjectDTO:
+    async def get_by_id(self, project_id: UUID, user: UserDTO) -> ProjectDTO:
         async with self.uow as uow:
             project = await self._get_by_id_or_raise(uow.session, project_id)
-            return ProjectDTO.model_validate(project)
+            return await self._to_project_dto(uow.session, project, user.id)
+
+    async def get_favorite_projects(
+        self,
+        filters: ProjectFilter,
+        user: UserDTO,
+    ) -> list[ProjectDTO]:
+        async with self.uow as uow:
+            projects = await self.repository.get_favorites(
+                uow.session,
+                user.id,
+                filters.to_repository_filters(),
+            )
+            return [
+                ProjectDTO.model_validate(project).model_copy(
+                    update={"is_favorite": True}
+                )
+                for project in projects
+            ]
 
     async def create(self, data: CreateProjectSchema, owner: UserDTO) -> ProjectDTO:
         async with self.uow as uow:
             await self._ensure_city_exists(uow.session, data.city_id)
+            await self._ensure_event_exists(uow.session, data.event_id)
             data_to_create = data.model_dump()
             data_to_create["owner_id"] = owner.id
             project = await self.repository.create(uow.session, data_to_create)
@@ -62,19 +110,44 @@ class ProjectService:
                 raise BadRequestError(msg)
             if data_to_update.get("city_id") is not None:
                 await self._ensure_city_exists(uow.session, data_to_update["city_id"])
+            if data_to_update.get("event_id") is not None:
+                await self._ensure_event_exists(uow.session, data_to_update["event_id"])
+            status = data_to_update.get("status")
+            if status is not None:
+                await self._validate_status_transition(uow.session, project, status)
             updated_project = await self.repository.update(
                 uow.session,
                 project_id,
                 data_to_update,
             )
             await uow.commit()
-            return ProjectDTO.model_validate(updated_project)
+            return await self._to_project_dto(uow.session, updated_project, user.id)
 
     async def delete(self, project_id: UUID, user: UserDTO) -> None:
         async with self.uow as uow:
             project = await self._get_by_id_or_raise(uow.session, project_id)
             self._ensure_owner_or_admin(project.owner_id, user)
             await self.repository.delete_by_id(uow.session, project_id)
+            await uow.commit()
+
+    async def add_to_favorites(self, project_id: UUID, user: UserDTO) -> None:
+        async with self.uow as uow:
+            await self._get_by_id_or_raise(uow.session, project_id)
+            await self.favorite_repository.create_if_not_exists(
+                uow.session,
+                user.id,
+                project_id,
+            )
+            await uow.commit()
+
+    async def remove_from_favorites(self, project_id: UUID, user: UserDTO) -> None:
+        async with self.uow as uow:
+            await self._get_by_id_or_raise(uow.session, project_id)
+            await self.favorite_repository.delete(
+                uow.session,
+                user.id,
+                project_id,
+            )
             await uow.commit()
 
     async def _get_by_id_or_raise(
@@ -97,6 +170,81 @@ class ProjectService:
         city = await self.city_repository.get(session, {"id": city_id})
         if not city:
             raise CityNotFoundError()
+
+    async def _ensure_event_exists(
+        self,
+        session: AsyncSession,
+        event_id: UUID | None,
+    ) -> None:
+        if event_id is None:
+            return
+        event = await self.event_repository.get(session, {"id": event_id})
+        if not event:
+            raise EventNotFoundError()
+
+    async def _validate_status_transition(
+        self,
+        session: AsyncSession,
+        project,
+        target_status: ProjectStatus,
+    ) -> None:
+        if project.status == target_status:
+            return
+        allowed_statuses = ALLOWED_PROJECT_STATUS_TRANSITIONS[project.status]
+        if target_status not in allowed_statuses:
+            msg = (
+                f"Cannot change project status from {project.status} to {target_status}"
+            )
+            raise BadRequestError(msg)
+        if target_status == ProjectStatus.SELECTION_COMPLETED:
+            await self._ensure_vacancies_filled(session, project)
+
+    async def _ensure_vacancies_filled(self, session: AsyncSession, project) -> None:
+        for vacancy in project.vacancies:
+            accepted_count = await self.application_repository.count_by_vacancy_status(
+                session,
+                vacancy.id,
+                ApplicationStatus.ACCEPTED,
+            )
+            if accepted_count < vacancy.required_count:
+                msg = (
+                    "Cannot complete selection while project vacancies "
+                    "do not have enough accepted participants"
+                )
+                raise BadRequestError(msg)
+
+    async def _to_project_dtos(
+        self,
+        session: AsyncSession,
+        projects,
+        user_id: UUID,
+    ) -> list[ProjectDTO]:
+        favorite_project_ids = await self.favorite_repository.get_project_ids(
+            session,
+            user_id,
+            [project.id for project in projects],
+        )
+        return [
+            ProjectDTO.model_validate(project).model_copy(
+                update={"is_favorite": project.id in favorite_project_ids}
+            )
+            for project in projects
+        ]
+
+    async def _to_project_dto(
+        self,
+        session: AsyncSession,
+        project,
+        user_id: UUID,
+    ) -> ProjectDTO:
+        is_favorite = await self.favorite_repository.exists(
+            session,
+            user_id,
+            project.id,
+        )
+        return ProjectDTO.model_validate(project).model_copy(
+            update={"is_favorite": is_favorite}
+        )
 
     def _ensure_owner_or_admin(
         self,

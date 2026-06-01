@@ -9,6 +9,7 @@ x-backend-base: &backend-base
   environment:
     APP__DB__HOST: pg
     APP__RUN__HOST: 0.0.0.0
+    APP__EMAIL__SMTP_HOST: maildev
 
 services:
   alembic:

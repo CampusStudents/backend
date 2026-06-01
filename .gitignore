@@ -220,3 +220,4 @@ ansible/inventory.ini
 src/certs/jwt-private.pem
 src/certs/jwt-public.pem
 serc
+*.pem
