@@ -83,6 +83,7 @@ async def upload_organization_image(
         organization_id,
         await image.read(),
         image.filename,
+        image.content_type,
     )
 
 

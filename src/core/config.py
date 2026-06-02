@@ -187,9 +187,12 @@ class AWSConfig(BaseModel):
     access_key: str = ""
     secret_key: str = ""
     endpoint_url: str = ""
+    region_name: str = "us-east-1"
     bucket_name: str = ""
     domain: str = ""
     folder: str | None = None
+    use_path_style: bool = True
+    max_image_size_bytes: int = 5 * 1024 * 1024
     image_white_list: list[str] = ["jpg", "jpeg", "png", "webp"]
 
 

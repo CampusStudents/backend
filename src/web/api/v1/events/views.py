@@ -73,7 +73,11 @@ async def upload_event_image(
     ),
 ) -> EventImageUrlDTO:
     return await service.upload_image(
-        event_id, await image.read(), image.filename, user
+        event_id,
+        await image.read(),
+        image.filename,
+        image.content_type,
+        user,
     )
 
 
