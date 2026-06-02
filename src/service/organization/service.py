@@ -129,20 +129,26 @@ class OrganizationService:
         organization_id: UUID,
         image_data: bytes,
         file_name: str | None,
+        content_type: str | None,
     ) -> OrganizationImageUrlDTO:
-        image_url = await ImageUploadService.upload_image(image_data, file_name)
-        try:
-            async with self.uow as uow:
-                await self._get_by_id_or_raise(uow.session, organization_id)
+        async with self.uow as uow:
+            await self._get_by_id_or_raise(uow.session, organization_id)
+            image_url = await ImageUploadService.upload_image(
+                image_data,
+                file_name,
+                content_type,
+                folder="organizations",
+            )
+            try:
                 image = await self.image_repository.create(
                     uow.session,
                     {"organization_id": organization_id, "url": image_url},
                 )
                 await uow.commit()
                 return OrganizationImageUrlDTO.model_validate(image)
-        except Exception:
-            await ImageUploadService.delete_image(image_url)
-            raise
+            except Exception:
+                await ImageUploadService.delete_image(image_url)
+                raise
 
     async def delete_image(
         self,

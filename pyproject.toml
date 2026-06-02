@@ -57,7 +57,10 @@ ignore = [
     "ISC001", # конфликтует с formatter иногда
     "RUF067",
     "B008",
-    "PLW3201"
+    "PLW3201",
+    "PLR0913",
+    "PLR6301",
+    "PLR0917"
 ]
 
 [tool.ruff.format]
