@@ -1,15 +1,19 @@
 from src.core.exceptions.service.base import (
-    BadRequestError,
+    AppError,
     InvalidInputError,
     NotFoundError,
 )
 
 
-class UploadFileError(BadRequestError):
+class AwsError(AppError):
+    message = "AWS error"
+
+
+class UploadFileError(AwsError):
     message = "Error uploading file"
 
 
-class DeleteFileError(BadRequestError):
+class DeleteFileError(AwsError):
     message = "Error deleting file"
 
 

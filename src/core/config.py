@@ -191,9 +191,12 @@ class AWSConfig(BaseModel):
     access_key: str = ""
     secret_key: str = ""
     endpoint_url: str = ""
+    region_name: str = "ru-3"
     bucket_name: str = ""
     domain: str = ""
     folder: str | None = None
+    ssl_verify: bool = False
+    ca_bundle: Path | None = None
     image_white_list: list[str] = ["jpg", "jpeg", "png", "webp"]
 
 

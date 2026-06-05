@@ -1,8 +1,9 @@
 import logging
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from aiobotocore.session import get_session
-from botocore.exceptions import ClientError
+from botocore.exceptions import BotoCoreError, ClientError
 
 from src.core.config import settings
 from src.core.exceptions.service.aws import DeleteFileError, UploadFileError
@@ -16,14 +17,19 @@ class S3Client:
         access_key: str,
         secret_key: str,
         endpoint_url: str,
+        region_name: str,
         bucket_name: str,
         domain: str,
         folder: str | None = None,
+        ssl_verify: bool = True,
+        ca_bundle: Path | None = None,
     ):
         self.config = {
             "aws_access_key_id": access_key,
             "aws_secret_access_key": secret_key,
             "endpoint_url": endpoint_url,
+            "region_name": region_name,
+            "verify": str(ca_bundle) if ca_bundle else ssl_verify,
         }
         self.bucket_name = bucket_name
         self.session = get_session()
@@ -55,7 +61,8 @@ class S3Client:
                     Body=data,
                 )
                 return f"{self.domain}/{file_path}"
-        except ClientError as e:
+        except (BotoCoreError, ClientError) as e:
+            logger.exception("Error uploading file %s", file_path)
             raise UploadFileError from e
 
     async def delete_file(self, filename: str) -> None:
@@ -63,7 +70,7 @@ class S3Client:
         try:
             async with self.get_client() as client:
                 await client.delete_object(Bucket=self.bucket_name, Key=file_path)
-        except ClientError as e:
+        except (BotoCoreError, ClientError) as e:
             logger.exception("Error deleting file %s", file_path)
             raise DeleteFileError from e
 
@@ -72,7 +79,10 @@ s3 = S3Client(
     access_key=settings.aws.access_key,
     secret_key=settings.aws.secret_key,
     endpoint_url=settings.aws.endpoint_url,
+    region_name=settings.aws.region_name,
     bucket_name=settings.aws.bucket_name,
     domain=settings.aws.domain,
     folder=settings.aws.folder,
+    ssl_verify=settings.aws.ssl_verify,
+    ca_bundle=settings.aws.ca_bundle,
 )
