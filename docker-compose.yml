@@ -1,9 +1,9 @@
-
-x-backend-image: &backend-image royrenie/backend:v2
-x-frontend-image: &frontend-image nginx:1.29-alpine
+x-backend-image: &backend-image "sequze/campusbackend"
+x-frontend-image: &frontend-image "nginx:1.29-alpine"
 
 x-backend-base: &backend-base
   image: *backend-image
+  build: ./
   env_file:
     - .env
   environment:
@@ -25,6 +25,15 @@ services:
       alembic:
         condition: service_completed_successfully
     command: [ "python", "-m", "src.service.rbac.cli" ]
+
+  seed:
+    <<: *backend-base
+    profiles:
+      - seed
+    depends_on:
+      rbac:
+        condition: service_completed_successfully
+    command: [ "python", "-m", "src.service.demo_seed.cli" ]
 
   backend:
     <<: *backend-base

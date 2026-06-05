@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Annotated, Literal
 from uuid import UUID
 
@@ -8,6 +8,7 @@ from pydantic import (
     EmailStr,
     Field,
     StringConstraints,
+    field_validator,
 )
 
 from src.db.choices import EventFormat, EventStatus
@@ -19,6 +20,12 @@ InitialEventStatus = Literal[
     EventStatus.PUBLISHED,
     EventStatus.REGISTRATION_OPEN,
 ]
+
+
+def normalize_datetime_to_utc_naive(value: datetime | None) -> datetime | None:
+    if value is None or value.tzinfo is None:
+        return value
+    return value.astimezone(UTC).replace(tzinfo=None)
 
 
 class EventBaseSchema(BaseModel):
@@ -36,6 +43,12 @@ class EventBaseSchema(BaseModel):
     registration_link: NonEmptyStr | None = None
     status: EventStatus = EventStatus.DRAFT
 
+    _normalize_datetimes = field_validator(
+        "date_start",
+        "date_end",
+        "application_deadline",
+    )(normalize_datetime_to_utc_naive)
+
 
 class CreateEventSchema(EventBaseSchema):
     organizer_id: UUID
@@ -45,10 +58,13 @@ class CreateEventSchema(EventBaseSchema):
 class UpdateEventSchema(BaseModel):
     organizer_id: UUID | None = None
     city_id: UUID | None = None
-    title: Annotated[
-        str,
-        StringConstraints(strip_whitespace=True, min_length=1, max_length=255),
-    ] | None = None
+    title: (
+        Annotated[
+            str,
+            StringConstraints(strip_whitespace=True, min_length=1, max_length=255),
+        ]
+        | None
+    ) = None
     description: NonEmptyStr | None = None
     date_start: datetime | None = None
     date_end: datetime | None = None
@@ -56,6 +72,12 @@ class UpdateEventSchema(BaseModel):
     format: EventFormat | None = None
     registration_link: str | None = None
     status: EventStatus | None = None
+
+    _normalize_datetimes = field_validator(
+        "date_start",
+        "date_end",
+        "application_deadline",
+    )(normalize_datetime_to_utc_naive)
 
 
 class EventFilter(BaseFilter):
@@ -73,5 +95,15 @@ class EventOrganizerDTO(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class EventImageUrlDTO(EntityDTO):
+    event_id: UUID
+    url: str
+
+
 class EventDTO(EventBaseSchema, EntityDTO):
     organizer: EventOrganizerDTO | None = None
+    images: list[EventImageUrlDTO] = Field(default_factory=list)
+
+
+class EventShortDTO(EventBaseSchema, EntityDTO):
+    pass

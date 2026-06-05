@@ -84,7 +84,7 @@ class PortfolioItemService:
     ) -> PortfolioItemDTO:
         async with self.uow as uow:
             item = await self._get_own_item_or_raise(uow.session, user_id, item_id)
-            data_to_update = data.model_dump(exclude_unset=True)
+            data_to_update = data.model_dump(mode="json", exclude_unset=True)
             team_role_id = data_to_update.get("team_role_id")
             if team_role_id is not None:
                 await self._ensure_team_role_exists(uow.session, team_role_id)

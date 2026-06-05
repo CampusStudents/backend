@@ -33,6 +33,17 @@ openssl rsa -in jwt-private.pem -outform PEM -pubout -out jwt-public.pem
 docker compose up -d --build
 ```
 
+## Демо-сиды
+
+Демо-данные запускаются опционально и не стартуют вместе с приложением.
+Чтобы применить миграции, bootstrap RBAC и загрузить демо-данные, выполните:
+
+```bash
+docker compose up --build seed
+```
+
+Все демо-пользователи создаются с паролем `campus-demo-2026`.
+
 ## Переменные окружения (.env.example)
 
 | Переменная                             | Описание                                                |

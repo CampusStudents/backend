@@ -7,6 +7,7 @@ from fastapi import HTTPException, Request, Response
 from fastapi.responses import JSONResponse
 
 from src.core.exceptions.api.base import InternalServerException
+from src.core.exceptions.service.aws import AwsError
 from src.core.exceptions.service.base import (
     AppError,
     AuthError,
@@ -98,6 +99,9 @@ class ErrorProcessor:
             status_code = 401
         elif isinstance(exc, InvalidInputError):
             status_code = 422
+        elif isinstance(exc, AwsError):
+            status_code = 503
+            special_message = "S3 service not available"
         elif isinstance(exc, BadRequestError):
             status_code = 400
         else:

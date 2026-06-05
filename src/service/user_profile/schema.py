@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, HttpUrl
 
 from src.service.helpers import EntityDTO, NonEmptyStr
 
@@ -9,6 +9,9 @@ class UserProfileBaseSchema(BaseModel):
     first_name: NonEmptyStr
     last_name: NonEmptyStr
     bio: NonEmptyStr | None = None
+    status: NonEmptyStr | None = None
+    telegram: NonEmptyStr | None = None
+    site: HttpUrl | None = None
     city_id: UUID
     university_id: UUID
 
@@ -21,6 +24,9 @@ class UpdateUserProfileSchema(BaseModel):
     first_name: NonEmptyStr | None = None
     last_name: NonEmptyStr | None = None
     bio: NonEmptyStr | None = None
+    status: NonEmptyStr | None = None
+    telegram: NonEmptyStr | None = None
+    site: HttpUrl | None = None
     city_id: UUID | None = None
     university_id: UUID | None = None
 

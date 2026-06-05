@@ -1,4 +1,5 @@
 import uuid
+from datetime import date
 from typing import TYPE_CHECKING
 
 from sqlalchemy import ForeignKey, String, Text
@@ -18,6 +19,8 @@ class PortfolioItem(UUIDPkMixin, TimestampMixin, Base):
     )
     title: Mapped[str] = mapped_column(String(255))
     description: Mapped[str | None] = mapped_column(Text)
+    work_started_at: Mapped[date | None]
+    work_ended_at: Mapped[date | None]
     team_role_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("team_roles.id", ondelete="RESTRICT")
     )

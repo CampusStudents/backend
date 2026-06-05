@@ -14,6 +14,7 @@ from src.service.dependencies import (
     get_auth_service,
     get_city_service,
     get_event_service,
+    get_notification_service,
     get_organization_request_service,
     get_organization_service,
     get_portfolio_item_service,
@@ -28,6 +29,7 @@ from src.service.dependencies import (
     get_user_service,
 )
 from src.service.event.service import EventService
+from src.service.notification.service import NotificationService
 from src.service.organization.service import OrganizationService
 from src.service.organization_request.service import OrganizationRequestService
 from src.service.portfolio_item.service import PortfolioItemService
@@ -51,6 +53,10 @@ ApplicationServiceDep = Annotated[
 AuthServiceDep = Annotated[AuthService, Depends(get_auth_service)]
 CityServiceDep = Annotated[CityService, Depends(get_city_service)]
 EventServiceDep = Annotated[EventService, Depends(get_event_service)]
+NotificationServiceDep = Annotated[
+    NotificationService,
+    Depends(get_notification_service),
+]
 OrganizationServiceDep = Annotated[
     OrganizationService,
     Depends(get_organization_service),

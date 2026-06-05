@@ -2,6 +2,7 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.core.exceptions.service.aws import ImageNotFoundError
 from src.core.exceptions.service.base import BadRequestError, NoAccessError
 from src.core.exceptions.service.city import CityNotFoundError
 from src.core.exceptions.service.event import EventNotFoundError
@@ -9,11 +10,19 @@ from src.core.exceptions.service.organization import OrganizationNotFoundError
 from src.db.models import Event
 from src.db.repository.city import CityRepository
 from src.db.repository.event import EventRepository
+from src.db.repository.image import EventImageUrlRepository
 from src.db.repository.organization import OrganizationRepository
 from src.db.unit_of_work import UnitOfWork
+from src.service.image_upload.service import ImageUploadService
 from src.service.user.schema import UserDTO
 
-from .schema import CreateEventSchema, EventDTO, EventFilter, UpdateEventSchema
+from .schema import (
+    CreateEventSchema,
+    EventDTO,
+    EventFilter,
+    EventImageUrlDTO,
+    UpdateEventSchema,
+)
 
 
 class EventService:
@@ -23,11 +32,13 @@ class EventService:
         repository: EventRepository,
         city_repository: CityRepository,
         organization_repository: OrganizationRepository,
+        image_repository: EventImageUrlRepository,
     ):
         self.uow = uow
         self.repository = repository
         self.city_repository = city_repository
         self.organization_repository = organization_repository
+        self.image_repository = image_repository
 
     async def get_all(self, filters: EventFilter) -> list[EventDTO]:
         async with self.uow as uow:
@@ -99,7 +110,50 @@ class EventService:
         async with self.uow as uow:
             event = await self._get_by_id_or_raise(uow.session, event_id)
             self._ensure_event_owner_or_admin(event, user)
+            for image in event.images:
+                await ImageUploadService.delete_image(image.url)
             await self.repository.delete_by_id(uow.session, event_id)
+            await uow.commit()
+
+    async def upload_image(
+        self,
+        event_id: UUID,
+        image_data: bytes,
+        file_name: str | None,
+        user: UserDTO,
+    ) -> EventImageUrlDTO:
+        image_url = await ImageUploadService.upload_image(image_data, file_name)
+        try:
+            async with self.uow as uow:
+                event = await self._get_by_id_or_raise(uow.session, event_id)
+                self._ensure_event_owner_or_admin(event, user)
+                image = await self.image_repository.create(
+                    uow.session,
+                    {"event_id": event_id, "url": image_url},
+                )
+                await uow.commit()
+                return EventImageUrlDTO.model_validate(image)
+        except Exception:
+            await ImageUploadService.delete_image(image_url)
+            raise
+
+    async def delete_image(
+        self,
+        event_id: UUID,
+        image_id: UUID,
+        user: UserDTO,
+    ) -> None:
+        async with self.uow as uow:
+            event = await self._get_by_id_or_raise(uow.session, event_id)
+            self._ensure_event_owner_or_admin(event, user)
+            image = await self.image_repository.get(
+                uow.session,
+                {"id": image_id, "event_id": event_id},
+            )
+            if not image:
+                raise ImageNotFoundError()
+            await ImageUploadService.delete_image(image.url)
+            await self.image_repository.delete_by_id(uow.session, image_id)
             await uow.commit()
 
     async def _get_by_id_or_raise(self, session: AsyncSession, event_id: UUID):

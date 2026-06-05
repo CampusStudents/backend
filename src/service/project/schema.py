@@ -5,6 +5,7 @@ from uuid import UUID
 from pydantic import BaseModel, Field, StringConstraints, field_validator
 
 from src.db.choices import ProjectFormat, ProjectStatus, ProjectType
+from src.service.event.schema import EventShortDTO
 from src.service.filters import BaseFilter
 from src.service.helpers import EntityDTO, NonEmptyStr
 
@@ -72,3 +73,5 @@ class ProjectFilter(BaseFilter):
 
 class ProjectDTO(ProjectBaseSchema, EntityDTO):
     owner_id: UUID | None
+    event: EventShortDTO | None = None
+    is_favorite: bool = False

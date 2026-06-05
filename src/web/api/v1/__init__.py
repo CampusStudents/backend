@@ -6,6 +6,7 @@ from .applications import router as applications_router
 from .auth import router as auth_router
 from .cities import router as cities_router
 from .events import router as events_router
+from .notifications import router as notifications_router
 from .organization_requests import router as organization_requests_router
 from .organizations import router as organizations_router
 from .projects import router as projects_router
@@ -23,6 +24,7 @@ router.include_router(applications_router, tags=["Applications"])
 router.include_router(auth_router, prefix=settings.api.v1.auth)
 router.include_router(cities_router, tags=["Cities"])
 router.include_router(events_router, tags=["Events"])
+router.include_router(notifications_router, tags=["Notifications"])
 router.include_router(organizations_router, tags=["Organizations"])
 router.include_router(organization_requests_router, tags=["Organization requests"])
 router.include_router(projects_router, tags=["Projects"])

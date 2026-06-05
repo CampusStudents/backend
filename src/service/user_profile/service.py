@@ -56,7 +56,7 @@ class UserProfileService:
                 msg = "User profile already exists"
                 raise AlreadyExistsError(msg)
 
-            data_to_create = data.model_dump()
+            data_to_create = data.model_dump(mode="json")
             await self._ensure_related_entities_exist(uow.session, data_to_create)
             data_to_create["user_id"] = user_id
             profile = await self.repository.create(
@@ -78,7 +78,7 @@ class UserProfileService:
     ) -> UserProfileDTO:
         async with self.uow as uow:
             profile = await self._get_by_user_id_or_raise(uow.session, user_id)
-            data_to_update = data.model_dump(exclude_unset=True)
+            data_to_update = data.model_dump(mode="json", exclude_unset=True)
             await self._ensure_related_entities_exist(uow.session, data_to_update)
             updated_profile = await self.repository.update(
                 uow.session,

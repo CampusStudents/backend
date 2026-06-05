@@ -60,6 +60,7 @@ class ApiV1Prefix(BaseModel):
     projects: str = "/projects"
     recommendations: str = "/recommendations"
     events: str = "/events"
+    notifications: str = "/notifications"
     organizations: str = "/organizations"
     organization_requests: str = "/organization-requests"
 
@@ -94,6 +95,7 @@ class RBACConfig(BaseModel):
         "project_vacancies",
         "recommendations",
         "events",
+        "notifications",
         "organizations",
         "organization_requests",
         "portfolio_items",
@@ -106,6 +108,8 @@ class RBACConfig(BaseModel):
         "update",
         "delete",
         "vacancies",
+        "favorites_list",
+        "favorites_update",
     ]
     initial_permission_schema: dict[str, list[str]] = {
         "admin": ["*"],
@@ -149,12 +153,16 @@ class RBACConfig(BaseModel):
             "projects:create",
             "projects:update",
             "projects:delete",
+            "projects:favorites_list",
+            "projects:favorites_update",
             "project_vacancies:list",
             "project_vacancies:detail",
             "project_vacancies:create",
             "project_vacancies:update",
             "project_vacancies:delete",
             "recommendations:vacancies",
+            "notifications:list",
+            "notifications:update",
             "organization_requests:create",
             "organization_requests:list_own",
             "portfolio_items:list",
@@ -177,6 +185,19 @@ class EmailConfig(BaseModel):
     smtp_host: str = "maildev"
     smtp_port: int = 1025
     from_email: str = "campus@mail.ru"
+
+
+class AWSConfig(BaseModel):
+    access_key: str = ""
+    secret_key: str = ""
+    endpoint_url: str = ""
+    region_name: str = "ru-3"
+    bucket_name: str = ""
+    domain: str = ""
+    folder: str | None = None
+    ssl_verify: bool = False
+    ca_bundle: Path | None = None
+    image_white_list: list[str] = ["jpg", "jpeg", "png", "webp"]
 
 
 class RateLimitConfig(BaseModel):
@@ -235,6 +256,7 @@ class Settings(BaseSettings):
     auth: AuthConfig = AuthConfig()
     rbac: RBACConfig
     email: EmailConfig = EmailConfig()
+    aws: AWSConfig = AWSConfig()
     rate_limit: RateLimitConfig = RateLimitConfig()
     db: DatabaseConfig
     app_url: str = "127.0.0.1:8000"
