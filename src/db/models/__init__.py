@@ -10,6 +10,7 @@ from .library import (
     project_vacancy_skills,
     user_skills,
 )
+from .notification import Notification
 from .organization import Organization
 from .organization_request import OrganizationRequest
 from .portfolio_item import PortfolioItem
@@ -28,6 +29,7 @@ __all__ = [
     "City",
     "Event",
     "EventImageUrl",
+    "Notification",
     "Organization",
     "OrganizationImageUrl",
     "OrganizationRequest",

@@ -22,6 +22,8 @@ class Scope:
     EVENTS_CREATE = scope("events", "create")
     EVENTS_UPDATE = scope("events", "update")
     EVENTS_DELETE = scope("events", "delete")
+    NOTIFICATIONS_LIST = scope("notifications", "list")
+    NOTIFICATIONS_UPDATE = scope("notifications", "update")
     ORGANIZATIONS_LIST = scope("organizations", "list")
     ORGANIZATIONS_DETAIL = scope("organizations", "detail")
     ORGANIZATIONS_CREATE = scope("organizations", "create")

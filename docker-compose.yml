@@ -1,5 +1,5 @@
 
-x-backend-image: &backend-image "royrenie/backend:v3"
+x-backend-image: &backend-image "royrenie/backend:v4"
 x-frontend-image: &frontend-image "nginx:1.29-alpine"
 
 x-backend-base: &backend-base

@@ -60,6 +60,7 @@ class ApiV1Prefix(BaseModel):
     projects: str = "/projects"
     recommendations: str = "/recommendations"
     events: str = "/events"
+    notifications: str = "/notifications"
     organizations: str = "/organizations"
     organization_requests: str = "/organization-requests"
 
@@ -94,6 +95,7 @@ class RBACConfig(BaseModel):
         "project_vacancies",
         "recommendations",
         "events",
+        "notifications",
         "organizations",
         "organization_requests",
         "portfolio_items",
@@ -159,6 +161,8 @@ class RBACConfig(BaseModel):
             "project_vacancies:update",
             "project_vacancies:delete",
             "recommendations:vacancies",
+            "notifications:list",
+            "notifications:update",
             "organization_requests:create",
             "organization_requests:list_own",
             "portfolio_items:list",

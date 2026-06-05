@@ -6,3 +6,7 @@ class ApplicationStatus(StrEnum):
     ACCEPTED = "accepted"
     REJECTED = "rejected"
     WITHDRAWN = "withdrawn"
+
+
+class NotificationType(StrEnum):
+    APPLICATION_DECISION = "application_decision"

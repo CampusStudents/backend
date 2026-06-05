@@ -6,6 +6,7 @@ from src.db.repository.image import (
     EventImageUrlRepository,
     OrganizationImageUrlRepository,
 )
+from src.db.repository.notification import NotificationRepository
 from src.db.repository.organization import OrganizationRepository
 from src.db.repository.organization_request import OrganizationRequestRepository
 from src.db.repository.portfolio_item import PortfolioItemRepository
@@ -45,6 +46,10 @@ def get_event_repository() -> EventRepository:
 
 def get_event_image_url_repository() -> EventImageUrlRepository:
     return EventImageUrlRepository()
+
+
+def get_notification_repository() -> NotificationRepository:
+    return NotificationRepository()
 
 
 def get_organization_repository() -> OrganizationRepository:

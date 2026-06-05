@@ -15,9 +15,10 @@ from src.core.exceptions.service.application import (
 from src.core.exceptions.service.base import NoAccessError
 from src.core.exceptions.service.project import ProjectNotFoundError
 from src.core.exceptions.service.project_vacancy import ProjectVacancyNotFoundError
-from src.db.choices import ApplicationStatus, ProjectStatus
+from src.db.choices import ApplicationStatus, NotificationType, ProjectStatus
 from src.db.models import Application
 from src.db.repository.application import ApplicationRepository
+from src.db.repository.notification import NotificationRepository
 from src.db.repository.project import ProjectRepository
 from src.db.repository.project_vacancy import ProjectVacancyRepository
 from src.db.repository.team_member import TeamMemberRepository
@@ -33,19 +34,21 @@ APPLICATION_CLOSED_PROJECT_STATUSES = {
 
 
 class ApplicationService:
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         uow: UnitOfWork,
         repository: ApplicationRepository,
         project_repository: ProjectRepository,
         vacancy_repository: ProjectVacancyRepository,
         team_member_repository: TeamMemberRepository,
+        notification_repository: NotificationRepository,
     ):
         self.uow = uow
         self.repository = repository
         self.project_repository = project_repository
         self.vacancy_repository = vacancy_repository
         self.team_member_repository = team_member_repository
+        self.notification_repository = notification_repository
 
     async def create(
         self,
@@ -174,6 +177,19 @@ class ApplicationService:
                     "decided_at": decided_at,
                 },
             )
+            await self.notification_repository.create(
+                uow.session,
+                {
+                    "user_id": application.applicant_id,
+                    "application_id": application.id,
+                    "type": NotificationType.APPLICATION_DECISION,
+                    "title": self._build_decision_notification_title(data.status),
+                    "body": self._build_decision_notification_body(
+                        data.status,
+                        application,
+                    ),
+                },
+            )
             await uow.commit()
 
             updated_application = await self._get_by_id_or_raise(
@@ -269,3 +285,28 @@ class ApplicationService:
         if "*" in user.scopes or owner_id == user.id:
             return
         raise NoAccessError()
+
+    def _build_decision_notification_title(
+        self,
+        status: ApplicationStatus,
+    ) -> str:
+        if status == ApplicationStatus.ACCEPTED:
+            return "Application accepted"
+        return "Application rejected"
+
+    def _build_decision_notification_body(
+        self,
+        status: ApplicationStatus,
+        application: Application,
+    ) -> str:
+        project_title = application.vacancy.project.title
+        team_role_name = application.vacancy.team_role.name
+        if status == ApplicationStatus.ACCEPTED:
+            return (
+                f"Your application for {team_role_name} "
+                f"in project {project_title} was accepted."
+            )
+        return (
+            f"Your application for {team_role_name} "
+            f"in project {project_title} was rejected."
+        )

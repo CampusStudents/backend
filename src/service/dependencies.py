@@ -3,6 +3,7 @@ from src.db.dependencies import (
     get_city_repository,
     get_event_image_url_repository,
     get_event_repository,
+    get_notification_repository,
     get_organization_image_url_repository,
     get_organization_repository,
     get_organization_request_repository,
@@ -24,6 +25,7 @@ from src.service.application.service import ApplicationService
 from src.service.auth.service import AuthService
 from src.service.city.service import CityService
 from src.service.event.service import EventService
+from src.service.notification.service import NotificationService
 from src.service.organization.service import OrganizationService
 from src.service.organization_request.service import OrganizationRequestService
 from src.service.portfolio_item.service import PortfolioItemService
@@ -55,6 +57,7 @@ def get_application_service() -> ApplicationService:
         get_project_repository(),
         get_project_vacancy_repository(),
         get_team_member_repository(),
+        get_notification_repository(),
     )
 
 
@@ -70,6 +73,10 @@ def get_event_service() -> EventService:
         get_organization_repository(),
         get_event_image_url_repository(),
     )
+
+
+def get_notification_service() -> NotificationService:
+    return NotificationService(get_unit_of_work(), get_notification_repository())
 
 
 def get_organization_request_service() -> OrganizationRequestService:

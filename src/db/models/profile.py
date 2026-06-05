@@ -19,6 +19,9 @@ class UserProfile(UUIDPkMixin, TimestampMixin, Base):
     first_name: Mapped[str] = mapped_column(String(100))
     last_name: Mapped[str] = mapped_column(String(100))
     bio: Mapped[str | None] = mapped_column(TEXT)
+    status: Mapped[str | None] = mapped_column(TEXT)
+    telegram: Mapped[str | None] = mapped_column(String(100))
+    site: Mapped[str | None] = mapped_column(String(2048))
     city_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("cities.id", ondelete="RESTRICT")
     )
