@@ -1,5 +1,5 @@
 
-x-backend-image: &backend-image "royrenie/backend:v4"
+x-backend-image: &backend-image "sequze/campusbackend"
 x-frontend-image: &frontend-image "nginx:1.29-alpine"
 
 x-backend-base: &backend-base
@@ -10,14 +10,6 @@ x-backend-base: &backend-base
     APP__DB__HOST: pg
     APP__RUN__HOST: 0.0.0.0
     APP__EMAIL__SMTP_HOST: maildev
-    APP__AWS__ACCESS_KEY: ${APP__AWS__ACCESS_KEY:-campus}
-    APP__AWS__SECRET_KEY: ${APP__AWS__SECRET_KEY:-campus-secret}
-    APP__AWS__ENDPOINT_URL: ${APP__AWS__ENDPOINT_URL:-http://minio:9000}
-    APP__AWS__REGION_NAME: ${APP__AWS__REGION_NAME:-us-east-1}
-    APP__AWS__BUCKET_NAME: ${APP__AWS__BUCKET_NAME:-campus}
-    APP__AWS__DOMAIN: ${APP__AWS__DOMAIN:-http://localhost:9000/campus}
-    APP__AWS__FOLDER: ${APP__AWS__FOLDER:-uploads}
-    APP__AWS__USE_PATH_STYLE: ${APP__AWS__USE_PATH_STYLE:-true}
 
 services:
   alembic:
@@ -40,8 +32,6 @@ services:
       - "8000"
     depends_on:
       rbac:
-        condition: service_completed_successfully
-      minio-init:
         condition: service_completed_successfully
     healthcheck:
       test: [ "CMD", "curl", "-f", "-s", "--max-time", "5", "http://localhost:8000/api/health" ]
@@ -88,39 +78,5 @@ services:
       options:
         max-size: "1m"
 
-  minio:
-    image: minio/minio:latest
-    command: [ "server", "/data", "--console-address", ":9001" ]
-    environment:
-      MINIO_ROOT_USER: ${APP__AWS__ACCESS_KEY:-campus}
-      MINIO_ROOT_PASSWORD: ${APP__AWS__SECRET_KEY:-campus-secret}
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    volumes:
-      - minio_data:/data
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "-s", "http://localhost:9000/minio/health/live" ]
-      interval: 5s
-      timeout: 3s
-      retries: 10
-
-  minio-init:
-    image: minio/mc:latest
-    depends_on:
-      minio:
-        condition: service_healthy
-    environment:
-      MINIO_ROOT_USER: ${APP__AWS__ACCESS_KEY:-campus}
-      MINIO_ROOT_PASSWORD: ${APP__AWS__SECRET_KEY:-campus-secret}
-      MINIO_BUCKET: ${APP__AWS__BUCKET_NAME:-campus}
-    entrypoint: >
-      /bin/sh -c "
-      mc alias set local http://minio:9000 \"$${MINIO_ROOT_USER}\" \"$${MINIO_ROOT_PASSWORD}\" &&
-      mc mb --ignore-existing local/\"$${MINIO_BUCKET}\" &&
-      mc anonymous set download local/\"$${MINIO_BUCKET}\"
-      "
-
 volumes:
   pg_data:
-  minio_data:

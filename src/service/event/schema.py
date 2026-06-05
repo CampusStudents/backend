@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Annotated, Literal
 from uuid import UUID
 
@@ -8,6 +8,7 @@ from pydantic import (
     EmailStr,
     Field,
     StringConstraints,
+    field_validator,
 )
 
 from src.db.choices import EventFormat, EventStatus
@@ -19,6 +20,12 @@ InitialEventStatus = Literal[
     EventStatus.PUBLISHED,
     EventStatus.REGISTRATION_OPEN,
 ]
+
+
+def normalize_datetime_to_utc_naive(value: datetime | None) -> datetime | None:
+    if value is None or value.tzinfo is None:
+        return value
+    return value.astimezone(UTC).replace(tzinfo=None)
 
 
 class EventBaseSchema(BaseModel):
@@ -35,6 +42,12 @@ class EventBaseSchema(BaseModel):
     format: EventFormat | None = None
     registration_link: NonEmptyStr | None = None
     status: EventStatus = EventStatus.DRAFT
+
+    _normalize_datetimes = field_validator(
+        "date_start",
+        "date_end",
+        "application_deadline",
+    )(normalize_datetime_to_utc_naive)
 
 
 class CreateEventSchema(EventBaseSchema):
@@ -59,6 +72,12 @@ class UpdateEventSchema(BaseModel):
     format: EventFormat | None = None
     registration_link: str | None = None
     status: EventStatus | None = None
+
+    _normalize_datetimes = field_validator(
+        "date_start",
+        "date_end",
+        "application_deadline",
+    )(normalize_datetime_to_utc_naive)
 
 
 class EventFilter(BaseFilter):

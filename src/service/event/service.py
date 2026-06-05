@@ -120,28 +120,22 @@ class EventService:
         event_id: UUID,
         image_data: bytes,
         file_name: str | None,
-        content_type: str | None,
         user: UserDTO,
     ) -> EventImageUrlDTO:
-        async with self.uow as uow:
-            event = await self._get_by_id_or_raise(uow.session, event_id)
-            self._ensure_event_owner_or_admin(event, user)
-            image_url = await ImageUploadService.upload_image(
-                image_data,
-                file_name,
-                content_type,
-                folder="events",
-            )
-            try:
+        image_url = await ImageUploadService.upload_image(image_data, file_name)
+        try:
+            async with self.uow as uow:
+                event = await self._get_by_id_or_raise(uow.session, event_id)
+                self._ensure_event_owner_or_admin(event, user)
                 image = await self.image_repository.create(
                     uow.session,
                     {"event_id": event_id, "url": image_url},
                 )
                 await uow.commit()
                 return EventImageUrlDTO.model_validate(image)
-            except Exception:
-                await ImageUploadService.delete_image(image_url)
-                raise
+        except Exception:
+            await ImageUploadService.delete_image(image_url)
+            raise
 
     async def delete_image(
         self,
