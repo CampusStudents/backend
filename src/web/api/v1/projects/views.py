@@ -40,12 +40,8 @@ router = APIRouter(prefix=settings.api.v1.projects)
 async def get_projects(
     service: ProjectServiceDep,
     filters: Annotated[ProjectFilter, Query()],
-    user: UserDTO = Security(
-        get_current_active_user,
-        scopes=[Scope.PROJECTS_LIST],
-    ),
 ) -> list[ProjectDTO]:
-    return await service.get_all(filters, user)
+    return await service.get_all(filters)
 
 
 @router.get("/favorites")
@@ -64,12 +60,8 @@ async def get_favorite_projects(
 async def get_project(
     project_id: UUID,
     service: ProjectServiceDep,
-    user: UserDTO = Security(
-        get_current_active_user,
-        scopes=[Scope.PROJECTS_DETAIL],
-    ),
 ) -> ProjectDTO:
-    return await service.get_by_id(project_id, user)
+    return await service.get_by_id(project_id)
 
 
 @router.post("/{project_id}/favorite", status_code=status.HTTP_204_NO_CONTENT)
@@ -147,9 +139,6 @@ async def get_project_team(
 
 @router.get(
     "/{project_id}/vacancies",
-    dependencies=[
-        Security(get_current_active_user, scopes=[Scope.PROJECT_VACANCIES_LIST]),
-    ],
 )
 async def get_project_vacancies(
     project_id: UUID,
@@ -161,9 +150,6 @@ async def get_project_vacancies(
 
 @router.get(
     "/{project_id}/vacancies/{vacancy_id}",
-    dependencies=[
-        Security(get_current_active_user, scopes=[Scope.PROJECT_VACANCIES_DETAIL]),
-    ],
 )
 async def get_project_vacancy(
     project_id: UUID,
@@ -247,7 +233,7 @@ async def get_project_vacancy_applications(
 
 
 @router.patch("/{project_id}/vacancies/{vacancy_id}/applications/{application_id}")
-async def decide_application(  # noqa: PLR0913
+async def decide_application(
     project_id: UUID,
     vacancy_id: UUID,
     application_id: UUID,

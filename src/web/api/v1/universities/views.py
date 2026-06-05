@@ -21,9 +21,6 @@ router = APIRouter(prefix=settings.api.v1.universities)
 
 @router.get(
     "/",
-    dependencies=[
-        Security(get_current_active_user, scopes=[Scope.UNIVERSITIES_LIST]),
-    ],
 )
 async def get_universities(
     service: UniversityServiceDep,
@@ -34,9 +31,6 @@ async def get_universities(
 
 @router.get(
     "/{university_id}",
-    dependencies=[
-        Security(get_current_active_user, scopes=[Scope.UNIVERSITIES_DETAIL]),
-    ],
 )
 async def get_university(
     university_id: UUID,

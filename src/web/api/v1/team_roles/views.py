@@ -18,9 +18,6 @@ router = APIRouter(prefix=settings.api.v1.team_roles)
 
 @router.get(
     "/",
-    dependencies=[
-        Security(get_current_active_user, scopes=[Scope.TEAM_ROLES_LIST]),
-    ],
 )
 async def get_team_roles(
     service: TeamRoleServiceDep,
@@ -31,9 +28,6 @@ async def get_team_roles(
 
 @router.get(
     "/{team_role_id}",
-    dependencies=[
-        Security(get_current_active_user, scopes=[Scope.TEAM_ROLES_DETAIL]),
-    ],
 )
 async def get_team_role(
     team_role_id: UUID,
