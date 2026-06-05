@@ -14,6 +14,7 @@ from .mixins import TimestampMixin, UUIDPkMixin
 if TYPE_CHECKING:
     from .event import Event
     from .library import City
+    from .project_favorite import ProjectFavorite
     from .project_vacancy import ProjectVacancy
     from .user import User
 
@@ -65,4 +66,9 @@ class Project(UUIDPkMixin, TimestampMixin, Base):
     vacancies: Mapped[list[ProjectVacancy]] = relationship(
         back_populates="project",
         cascade="all, delete-orphan",
+    )
+    favorited_by: Mapped[list[ProjectFavorite]] = relationship(
+        back_populates="project",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
     )

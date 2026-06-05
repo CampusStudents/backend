@@ -58,6 +58,7 @@ class UpdateProjectVacancySchema(BaseModel):
 
 class ProjectVacancyFilter(BaseFilter):
     team_role_id__in: list[UUID] | None = Field(default=None, alias="team_role_id")
+    skill_id: UUID | None = None
 
 
 class ProjectVacancyDTO(ProjectVacancyBaseSchema, EntityDTO):

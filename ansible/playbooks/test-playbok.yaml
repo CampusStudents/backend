@@ -1,0 +1,5 @@
+- name: Test_ping_playbook
+  hosts: vms
+  tasks:
+    - name: Ping
+      ansible.builtin.ping:

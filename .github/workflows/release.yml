@@ -1,0 +1,83 @@
+name: Release app
+
+on:
+  push:
+    branches:
+      - main
+      - ci-cd-branch
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    outputs:
+      new_release_version: ${{ steps.semantic_release.outputs.new_release_version }}
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      id-token: write
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Nodejs
+      uses: actions/setup-node@v4
+      with:
+        node-version: "lts/*"
+    
+    - name: Run semantic-release
+      id: semantic_release
+      uses: cycjimmy/semantic-release-action@v6
+      env:
+        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+  deploy:
+    runs-on: ubuntu-latest
+    needs: release
+    steps:
+    - uses: CampusStudents/backend/.github/actions/ansible-setup@ci-cd-branch
+      with:
+        ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY_B64 }}
+        known_hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
+        vm_host: ${{ secrets.VM_HOST }}
+
+    - name: Build an image
+      run: |
+        cd ansible
+        ansible-playbook \
+          -i inventory.ini \
+          -u ${{ secrets.VM_USER }} \
+          playbooks/build-image-playbook.yaml
+      env:
+        ANSIBLE_HOST_KEY_CHECKING: "false"
+        ANSIBLE_FORCE_COLOR: "true"
+        DOCKER_USER: ${{ vars.DOCKER_USER }}
+        DOCKER_IMAGE_NAME: ${{ vars.DOCKER_IMAGE_NAME }}
+        CI_COMMIT_TAG: ${{ needs.release.outputs.new_release_version }}-github
+        DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
+    
+    - name: Create .env file
+      run: echo -e "${{ secrets.ENV }}" > ~/.env
+
+    - name: Update a compose
+      run: |
+        cd ansible
+        ansible-playbook \
+          -i inventory.ini \
+          -u ${{ secrets.VM_USER }} \
+          playbooks/update-compose-playbook.yaml
+      env:
+        ANSIBLE_HOST_KEY_CHECKING: "false"
+        ANSIBLE_FORCE_COLOR: "true"
+        ENV: ~/.env
+        DOMAIN: ${{ secrets.DOMAIN }}
+        DOCKER_IMAGE_WITH_TAG: ${{ vars.DOCKER_USER }}/${{ vars.DOCKER_IMAGE_NAME }}:${{ needs.release.outputs.new_release_version }}-github
+    
+    - name: Cleanup Workspace
+      if: always()
+      run: |
+        rm -rf ~/.ssh/
+        rm ~/.env

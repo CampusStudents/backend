@@ -1,0 +1,47 @@
+- name: Build image playbook
+  hosts: vms
+  become: true
+  vars:
+    remote_project_dir: "{{ lookup('env', 'REMOTE_PROJECT_DIR')}}"
+    docker_user: "{{ lookup('env', 'DOCKER_USER') }}"
+    docker_pass: "{{ lookup('env', 'DOCKER_TOKEN') }}"
+    image_name: "{{ docker_user }}/{{ lookup('env', 'DOCKER_IMAGE_NAME') }}"
+    image_tag: "{{ lookup('env', 'CI_COMMIT_TAG', default='v3') }}"
+
+
+
+  tasks:
+    - name: Copy src code
+      ansible.posix.synchronize:
+        src: ../../
+        dest: "{{ remote_project_dir }}"
+        rsync_opts:
+          - "--exclude=.venv"
+          - "--exclude=.git"
+          - "--exclude=__pycache__"
+          - "--exclude=.idea"
+          - "--exclude=ansible"
+
+    - name: Build image
+      community.docker.docker_image_build:
+        name: "{{ image_name }}"
+        tag: "{{ image_tag }}"
+        path: "{{ remote_project_dir }}/"
+
+    - name: Remove src code
+      ansible.builtin.file:
+        path: "{{ remote_project_dir }}"
+        state: absent
+
+    - name: Login to registry
+      community.docker.docker_login:
+        username: "{{ docker_user }}"
+        password: "{{ docker_pass }}"
+        reauthorize: true
+      register: login_result
+      no_log: false
+
+    - name: Push image
+      community.docker.docker_image_push:
+        name: "{{ image_name }}"
+        tag: "{{ image_tag }}"

@@ -5,19 +5,23 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.exceptions.service.application import (
     ApplicationAlreadyExistsError,
+    ApplicationApplicantAlreadyTeamMemberError,
     ApplicationNotFoundError,
     ApplicationStatusTransitionError,
+    ApplicationVacancyCapacityExceededError,
     ProjectNotAcceptingApplicationsError,
     ProjectOwnerApplicationError,
 )
 from src.core.exceptions.service.base import NoAccessError
 from src.core.exceptions.service.project import ProjectNotFoundError
 from src.core.exceptions.service.project_vacancy import ProjectVacancyNotFoundError
-from src.db.choices import ApplicationStatus, ProjectStatus
+from src.db.choices import ApplicationStatus, NotificationType, ProjectStatus
 from src.db.models import Application
 from src.db.repository.application import ApplicationRepository
+from src.db.repository.notification import NotificationRepository
 from src.db.repository.project import ProjectRepository
 from src.db.repository.project_vacancy import ProjectVacancyRepository
+from src.db.repository.team_member import TeamMemberRepository
 from src.db.unit_of_work import UnitOfWork
 from src.service.user.schema import UserDTO
 
@@ -30,17 +34,21 @@ APPLICATION_CLOSED_PROJECT_STATUSES = {
 
 
 class ApplicationService:
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         uow: UnitOfWork,
         repository: ApplicationRepository,
         project_repository: ProjectRepository,
         vacancy_repository: ProjectVacancyRepository,
+        team_member_repository: TeamMemberRepository,
+        notification_repository: NotificationRepository,
     ):
         self.uow = uow
         self.repository = repository
         self.project_repository = project_repository
         self.vacancy_repository = vacancy_repository
+        self.team_member_repository = team_member_repository
+        self.notification_repository = notification_repository
 
     async def create(
         self,
@@ -131,7 +139,7 @@ class ApplicationService:
         async with self.uow as uow:
             project = await self._get_project_or_raise(uow.session, project_id)
             self._ensure_owner_or_admin(project.owner_id, user)
-            await self._get_project_vacancy_or_raise(
+            vacancy = await self._get_project_vacancy_or_raise(
                 uow.session,
                 project_id,
                 vacancy_id,
@@ -142,12 +150,44 @@ class ApplicationService:
             if application.status != ApplicationStatus.PENDING:
                 raise ApplicationStatusTransitionError()
 
+            decided_at = datetime.now(UTC).replace(tzinfo=None)
+            if data.status == ApplicationStatus.ACCEPTED:
+                await self._validate_application(
+                    uow.session,
+                    project_id,
+                    vacancy.id,
+                    vacancy.required_count,
+                    application.applicant_id,
+                )
+                await self.team_member_repository.create(
+                    uow.session,
+                    {
+                        "project_id": project_id,
+                        "user_id": application.applicant_id,
+                        "team_role_id": vacancy.team_role_id,
+                        "joined_at": decided_at,
+                    },
+                )
+
             await self.repository.update(
                 uow.session,
                 application.id,
                 {
                     "status": data.status,
-                    "decided_at": datetime.now(UTC).replace(tzinfo=None),
+                    "decided_at": decided_at,
+                },
+            )
+            await self.notification_repository.create(
+                uow.session,
+                {
+                    "user_id": application.applicant_id,
+                    "application_id": application.id,
+                    "type": NotificationType.APPLICATION_DECISION,
+                    "title": self._build_decision_notification_title(data.status),
+                    "body": self._build_decision_notification_body(
+                        data.status,
+                        application,
+                    ),
                 },
             )
             await uow.commit()
@@ -214,6 +254,29 @@ class ApplicationService:
             raise ApplicationNotFoundError()
         return application
 
+    async def _validate_application(
+        self,
+        session: AsyncSession,
+        project_id: UUID,
+        vacancy_id: UUID,
+        required_count: int,
+        applicant_id: UUID,
+    ) -> None:
+        existing_team_member = await self.team_member_repository.get(
+            session,
+            {"project_id": project_id, "user_id": applicant_id},
+        )
+        if existing_team_member:
+            raise ApplicationApplicantAlreadyTeamMemberError()
+
+        accepted_count = await self.repository.count_by_vacancy_status(
+            session,
+            vacancy_id,
+            ApplicationStatus.ACCEPTED,
+        )
+        if accepted_count >= required_count:
+            raise ApplicationVacancyCapacityExceededError()
+
     def _ensure_owner_or_admin(
         self,
         owner_id: UUID | None,
@@ -222,3 +285,28 @@ class ApplicationService:
         if "*" in user.scopes or owner_id == user.id:
             return
         raise NoAccessError()
+
+    def _build_decision_notification_title(
+        self,
+        status: ApplicationStatus,
+    ) -> str:
+        if status == ApplicationStatus.ACCEPTED:
+            return "Application accepted"
+        return "Application rejected"
+
+    def _build_decision_notification_body(
+        self,
+        status: ApplicationStatus,
+        application: Application,
+    ) -> str:
+        project_title = application.vacancy.project.title
+        team_role_name = application.vacancy.team_role.name
+        if status == ApplicationStatus.ACCEPTED:
+            return (
+                f"Your application for {team_role_name} "
+                f"in project {project_title} was accepted."
+            )
+        return (
+            f"Your application for {team_role_name} "
+            f"in project {project_title} was rejected."
+        )

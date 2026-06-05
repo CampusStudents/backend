@@ -13,17 +13,31 @@ from src.service.dependencies import (
     get_application_service,
     get_auth_service,
     get_city_service,
+    get_event_service,
+    get_notification_service,
+    get_organization_request_service,
+    get_organization_service,
+    get_portfolio_item_service,
     get_project_service,
     get_project_vacancy_service,
+    get_recommendation_service,
     get_skill_service,
+    get_team_member_service,
     get_team_role_service,
     get_university_service,
     get_user_profile_service,
     get_user_service,
 )
+from src.service.event.service import EventService
+from src.service.notification.service import NotificationService
+from src.service.organization.service import OrganizationService
+from src.service.organization_request.service import OrganizationRequestService
+from src.service.portfolio_item.service import PortfolioItemService
 from src.service.project.service import ProjectService
 from src.service.project_vacancy.service import ProjectVacancyService
+from src.service.recommendation.service import RecommendationService
 from src.service.skill.service import SkillService
+from src.service.team_member.service import TeamMemberService
 from src.service.team_role.service import TeamRoleService
 from src.service.university.service import UniversityService
 from src.service.user.schema import UserDTO
@@ -38,12 +52,34 @@ ApplicationServiceDep = Annotated[
 ]
 AuthServiceDep = Annotated[AuthService, Depends(get_auth_service)]
 CityServiceDep = Annotated[CityService, Depends(get_city_service)]
+EventServiceDep = Annotated[EventService, Depends(get_event_service)]
+NotificationServiceDep = Annotated[
+    NotificationService,
+    Depends(get_notification_service),
+]
+OrganizationServiceDep = Annotated[
+    OrganizationService,
+    Depends(get_organization_service),
+]
+OrganizationRequestServiceDep = Annotated[
+    OrganizationRequestService,
+    Depends(get_organization_request_service),
+]
+PortfolioItemServiceDep = Annotated[
+    PortfolioItemService,
+    Depends(get_portfolio_item_service),
+]
 SkillServiceDep = Annotated[SkillService, Depends(get_skill_service)]
+TeamMemberServiceDep = Annotated[TeamMemberService, Depends(get_team_member_service)]
 TeamRoleServiceDep = Annotated[TeamRoleService, Depends(get_team_role_service)]
 ProjectServiceDep = Annotated[ProjectService, Depends(get_project_service)]
 ProjectVacancyServiceDep = Annotated[
     ProjectVacancyService,
     Depends(get_project_vacancy_service),
+]
+RecommendationServiceDep = Annotated[
+    RecommendationService,
+    Depends(get_recommendation_service),
 ]
 UniversityServiceDep = Annotated[UniversityService, Depends(get_university_service)]
 UserProfileServiceDep = Annotated[

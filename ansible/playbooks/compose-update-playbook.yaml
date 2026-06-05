@@ -1,0 +1,82 @@
+- name: Compose update playbook
+  hosts: vms
+  become: true
+  vars:
+    back_image: royrenie/backend:v3
+    front_image: nginx:1.29-alpine
+
+    #  Пути у меня
+    local_env_src: "../../.env"
+    local_compose_template: "../docker-compose.j2"
+
+    # Пути на СЕРВЕРЕ
+    remote_project_dir: "/home/user1/app"
+    remote_compose_file: "{{ remote_project_dir }}/docker-compose.yml"
+    remote_env_file: "{{ remote_project_dir }}/.env"
+
+  tasks:
+    - name: Ensure deploy directory exists
+      ansible.builtin.file:
+        path: "{{ remote_project_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Copy .env to server
+      ansible.builtin.copy:
+        src: "{{ local_env_src }}"
+        dest: "{{ remote_env_file }}"
+        mode: '0600'
+
+    - name: Copy nginx config to server
+      ansible.builtin.copy:
+        src: ../../nginx/
+        dest: "{{ remote_project_dir }}/nginx/"
+        mode: '0755'
+
+
+    - name: Check if compose file exists on server
+      ansible.builtin.stat:
+        path: "{{ remote_compose_file }}"
+      register: file_data
+
+    - name: Stop running containers
+      community.docker.docker_compose_v2:
+        project_src: "{{ remote_project_dir }}"
+        state: absent
+        remove_orphans: true
+      become: true
+      when: file_data.stat.exists
+
+    - name: Read compose
+      ansible.builtin.slurp:
+        src: "{{ remote_compose_file }}"
+      register: yaml_data
+      when: file_data.stat.exists
+
+    - name: Parse the data
+      ansible.builtin.set_fact:
+        compose_data: "{{ yaml_data.content | b64decode | from_yaml }}"
+      when: file_data.stat.exists
+
+    - name: Extract frontend image
+      ansible.builtin.set_fact:
+        front_image: "{{ compose_data['x-frontend-image'] }}"
+      when: file_data.stat.exists
+
+    - name: Template docker-compose.yml
+      ansible.builtin.template:
+        src: "{{ local_compose_template }}"
+        dest: "{{ remote_compose_file }}"
+        mode: '0644'
+
+    - name: Start compose
+      community.docker.docker_compose_v2:
+        project_src: "{{ remote_project_dir }}"
+        state: present
+
+    - name: Prune all unused images
+      community.docker.docker_prune:
+        images: true
+        images_filters:
+          dangling: false
+      become: true

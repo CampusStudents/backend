@@ -1,11 +1,22 @@
 from src.db.db_helper import db_helper
 from src.db.repository.application import ApplicationRepository
 from src.db.repository.city import CityRepository
+from src.db.repository.event import EventRepository
+from src.db.repository.image import (
+    EventImageUrlRepository,
+    OrganizationImageUrlRepository,
+)
+from src.db.repository.notification import NotificationRepository
+from src.db.repository.organization import OrganizationRepository
+from src.db.repository.organization_request import OrganizationRequestRepository
+from src.db.repository.portfolio_item import PortfolioItemRepository
 from src.db.repository.project import ProjectRepository
+from src.db.repository.project_favorite import ProjectFavoriteRepository
 from src.db.repository.project_vacancy import ProjectVacancyRepository
 from src.db.repository.refresh_session import RefreshSessionRepository
 from src.db.repository.role import RoleRepository
 from src.db.repository.skill import SkillRepository
+from src.db.repository.team_member import TeamMemberRepository
 from src.db.repository.team_role import TeamRoleRepository
 from src.db.repository.university import UniversityRepository
 from src.db.repository.user import UserRepository
@@ -29,8 +40,40 @@ def get_city_repository() -> CityRepository:
     return CityRepository()
 
 
+def get_event_repository() -> EventRepository:
+    return EventRepository()
+
+
+def get_event_image_url_repository() -> EventImageUrlRepository:
+    return EventImageUrlRepository()
+
+
+def get_notification_repository() -> NotificationRepository:
+    return NotificationRepository()
+
+
+def get_organization_repository() -> OrganizationRepository:
+    return OrganizationRepository()
+
+
+def get_organization_image_url_repository() -> OrganizationImageUrlRepository:
+    return OrganizationImageUrlRepository()
+
+
+def get_organization_request_repository() -> OrganizationRequestRepository:
+    return OrganizationRequestRepository()
+
+
+def get_portfolio_item_repository() -> PortfolioItemRepository:
+    return PortfolioItemRepository()
+
+
 def get_project_repository() -> ProjectRepository:
     return ProjectRepository()
+
+
+def get_project_favorite_repository() -> ProjectFavoriteRepository:
+    return ProjectFavoriteRepository()
 
 
 def get_project_vacancy_repository() -> ProjectVacancyRepository:
@@ -43,6 +86,10 @@ def get_skill_repository() -> SkillRepository:
 
 def get_team_role_repository() -> TeamRoleRepository:
     return TeamRoleRepository()
+
+
+def get_team_member_repository() -> TeamMemberRepository:
+    return TeamMemberRepository()
 
 
 def get_university_repository() -> UniversityRepository:

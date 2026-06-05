@@ -19,3 +19,11 @@ class ProjectNotAcceptingApplicationsError(BadRequestError):
 
 class ApplicationStatusTransitionError(BadRequestError):
     message = "Application status transition is not allowed"
+
+
+class ApplicationVacancyCapacityExceededError(BadRequestError):
+    message = "Vacancy required count is already reached"
+
+
+class ApplicationApplicantAlreadyTeamMemberError(BadRequestError):
+    message = "Applicant is already a team member of this project"

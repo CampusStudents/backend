@@ -5,7 +5,7 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict, EmailStr
 
 from src.db.choices import ApplicationStatus, ProjectStatus
-from src.service.helpers import EntityDTO, NonEmptyStr
+from src.service.helpers import EntityDTO, NonEmptyStr, ShortDTO
 
 
 class CreateApplicationSchema(BaseModel):
@@ -31,12 +31,6 @@ class ApplicationApplicantDTO(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class ApplicationTeamRoleDTO(BaseModel):
-    id: UUID
-    name: str
-
-    model_config = ConfigDict(from_attributes=True)
-
 
 class ApplicationProjectDTO(BaseModel):
     id: UUID
@@ -53,7 +47,7 @@ class ApplicationVacancyDTO(BaseModel):
     team_role_id: UUID
     required_count: int
     description: str | None = None
-    team_role: ApplicationTeamRoleDTO
+    team_role: ShortDTO
     project: ApplicationProjectDTO
 
     model_config = ConfigDict(from_attributes=True)

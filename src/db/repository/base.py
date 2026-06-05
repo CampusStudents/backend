@@ -82,7 +82,7 @@ class SQLAlchemyRepository[Model: Base]:
             case FilterOperator.IN:
                 return query.where(column.in_(self._normalize_filter_sequence(value)))
             case FilterOperator.LIKE:
-                return query.where(column.like(value))
+                return query.where(column.like(f"%{value}%"))
             case FilterOperator.EQ if value is None:
                 return query.where(column.is_(None))
             case FilterOperator.EQ:
