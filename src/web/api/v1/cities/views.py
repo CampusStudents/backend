@@ -21,7 +21,6 @@ router = APIRouter(prefix=settings.api.v1.cities)
 
 @router.get(
     "/",
-    dependencies=[Security(get_current_active_user, scopes=[Scope.CITIES_LIST])],
 )
 async def get_cities(
     service: CityServiceDep,
@@ -32,7 +31,6 @@ async def get_cities(
 
 @router.get(
     "/{city_id}",
-    dependencies=[Security(get_current_active_user, scopes=[Scope.CITIES_DETAIL])],
 )
 async def get_city(
     city_id: UUID,

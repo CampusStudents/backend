@@ -18,7 +18,6 @@ router = APIRouter(prefix=settings.api.v1.skills)
 
 @router.get(
     "/",
-    dependencies=[Security(get_current_active_user, scopes=[Scope.SKILLS_LIST])],
 )
 async def get_skills(
     service: SkillServiceDep,
@@ -29,7 +28,6 @@ async def get_skills(
 
 @router.get(
     "/{skill_id}",
-    dependencies=[Security(get_current_active_user, scopes=[Scope.SKILLS_DETAIL])],
 )
 async def get_skill(
     skill_id: UUID,

@@ -37,7 +37,7 @@ ALLOWED_PROJECT_STATUS_TRANSITIONS = {
 
 
 class ProjectService:
-    def __init__(  # noqa: PLR0913
+    def __init__(
         self,
         uow: UnitOfWork,
         repository: ProjectRepository,
@@ -53,18 +53,34 @@ class ProjectService:
         self.event_repository = event_repository
         self.application_repository = application_repository
 
-    async def get_all(self, filters: ProjectFilter, user: UserDTO) -> list[ProjectDTO]:
+    async def get_all(
+        self,
+        filters: ProjectFilter,
+        user: UserDTO | None = None,
+    ) -> list[ProjectDTO]:
         async with self.uow as uow:
             projects = await self.repository.get_multi_out(
                 uow.session,
                 filters.to_repository_filters(),
             )
-            return await self._to_project_dtos(uow.session, projects, user.id)
+            return await self._to_project_dtos(
+                uow.session,
+                projects,
+                user.id if user else None,
+            )
 
-    async def get_by_id(self, project_id: UUID, user: UserDTO) -> ProjectDTO:
+    async def get_by_id(
+        self,
+        project_id: UUID,
+        user: UserDTO | None = None,
+    ) -> ProjectDTO:
         async with self.uow as uow:
             project = await self._get_by_id_or_raise(uow.session, project_id)
-            return await self._to_project_dto(uow.session, project, user.id)
+            return await self._to_project_dto(
+                uow.session,
+                project,
+                user.id if user else None,
+            )
 
     async def get_favorite_projects(
         self,
@@ -217,12 +233,16 @@ class ProjectService:
         self,
         session: AsyncSession,
         projects,
-        user_id: UUID,
+        user_id: UUID | None,
     ) -> list[ProjectDTO]:
-        favorite_project_ids = await self.favorite_repository.get_project_ids(
-            session,
-            user_id,
-            [project.id for project in projects],
+        favorite_project_ids = (
+            await self.favorite_repository.get_project_ids(
+                session,
+                user_id,
+                [project.id for project in projects],
+            )
+            if user_id
+            else set()
         )
         return [
             ProjectDTO.model_validate(project).model_copy(
@@ -235,12 +255,16 @@ class ProjectService:
         self,
         session: AsyncSession,
         project,
-        user_id: UUID,
+        user_id: UUID | None,
     ) -> ProjectDTO:
-        is_favorite = await self.favorite_repository.exists(
-            session,
-            user_id,
-            project.id,
+        is_favorite = (
+            await self.favorite_repository.exists(
+                session,
+                user_id,
+                project.id,
+            )
+            if user_id
+            else False
         )
         return ProjectDTO.model_validate(project).model_copy(
             update={"is_favorite": is_favorite}
